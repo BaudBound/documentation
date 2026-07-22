@@ -90,7 +90,7 @@ Native actions use supported Rust libraries or operating-system APIs. The editor
 
 ## Operator checklist
 
-- Download the runner only from the [official BaudBound GitHub Releases page](https://github.com/BaudBound/BaudBound/releases) and allow signature verification to complete.
+- Download the runner only from the [official BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases) and allow signature verification to complete.
 - Validate and inspect a package before import when its source is unfamiliar.
 - Review capabilities, permissions, target, risk, secrets, listeners, and variable-controlled paths.
 - Re-review every updated revision instead of approving by filename.

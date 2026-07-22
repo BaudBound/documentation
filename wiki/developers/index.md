@@ -11,7 +11,7 @@ BaudBound is a TypeScript and Rust workspace. A workspace is one repository cont
 
 ## Applications
 
-The [editor repository](https://github.com/BaudBound/editor) contains the Next.js visual editor. The [runner repository](https://github.com/BaudBound/BaudBound) contains the unified runner CLI and Tauri desktop application. Shared schemas and machine-readable contracts live in the [contracts repository](https://github.com/BaudBound/contracts).
+The [editor repository](https://github.com/BaudBound/editor) contains the Next.js visual editor. The [runner repository](https://github.com/BaudBound/baudbound) contains the unified runner CLI and Tauri desktop application. Shared schemas and machine-readable contracts live in the [contracts repository](https://github.com/BaudBound/contracts).
 
 | Area | Owns | Start here |
 | --- | --- | --- |

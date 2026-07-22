@@ -9,7 +9,7 @@ tags: [runner, installation]
 
 BaudBound releases currently target 64-bit Windows and 64-bit x86 Linux. Windows uses an installer. Debian and Ubuntu use a `.deb` package. Fedora uses an `.rpm` package. A portable AppImage is also published for manual use on other compatible Linux systems.
 
-Download release files only from the [BaudBound GitHub Releases page](https://github.com/BaudBound/BaudBound/releases). Open the latest published release and choose the file for the operating system. You do not need Rust, Node.js, or the source repository to run a published release.
+Download release files only from the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases). Open the latest published release and choose the file for the operating system. You do not need Rust, Node.js, or the source repository to run a published release.
 
 ## Linux encrypted secret storage
 
@@ -143,7 +143,7 @@ Manual installation takes more steps and requires you to replace files yourself 
 
 #### Windows
 
-1. Download the `.exe` setup file from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/BaudBound/releases).
+1. Download the `.exe` setup file from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases).
 2. Open the downloaded file and complete the installer.
 3. Start **BaudBound** from the Start menu.
 4. Confirm that the Dashboard opens without an error banner.
@@ -158,7 +158,7 @@ Use the native package for Debian, Ubuntu, or Fedora. It installs the desktop la
 
 ##### Debian and Ubuntu package
 
-1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/BaudBound/releases/latest) and download the file ending in `_amd64.deb`.
+1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the file ending in `_amd64.deb`.
 2. Open a terminal and move to the directory containing the download:
 
 ```bash
@@ -181,7 +181,7 @@ APT installs a newer package over an older BaudBound version. You do not need to
 
 ##### Fedora package
 
-1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/BaudBound/releases/latest) and download the file ending in `.x86_64.rpm`.
+1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the file ending in `.x86_64.rpm`.
 2. Open a terminal and move to the directory containing the download:
 
 ```bash
@@ -204,7 +204,7 @@ DNF installs a newer package over an older BaudBound version. You do not need to
 
 ##### Portable AppImage
 
-Use the AppImage when the automatic installer does not support the distribution or when you specifically want a portable per-user installation. The AppImage is available only from the [GitHub Releases page](https://github.com/BaudBound/BaudBound/releases/latest). It is not offered by `get.baudbound.app`.
+Use the AppImage when the automatic installer does not support the distribution or when you specifically want a portable per-user installation. The AppImage is available only from the [GitHub Releases page](https://github.com/BaudBound/baudbound/releases/latest). It is not offered by `get.baudbound.app`.
 
 The AppImage contains both the BaudBound desktop application and its CLI. Starting it without a command opens the desktop application. Adding a command such as `--version` or `doctor` uses the CLI.
 
@@ -214,7 +214,7 @@ The steps below install BaudBound only for your user account. They do not instal
 
 ##### Install the AppImage
 
-1. Download the `.AppImage` from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/BaudBound/releases).
+1. Download the `.AppImage` from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases).
 
 2. Open a terminal. Move into the Downloads directory because this is where most browsers save the file:
 
@@ -600,7 +600,7 @@ No output means BaudBound has stopped. If a process is listed, return to the app
 
 **Option A: Web browser**
 
-Open the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/BaudBound/releases). Download its `.AppImage` file, move it to `~/Downloads` if necessary, and rename the downloaded file to `BaudBound.AppImage`.
+Open the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases). Download its `.AppImage` file, move it to `~/Downloads` if necessary, and rename the downloaded file to `BaudBound.AppImage`.
 
 **Option B: Terminal with curl**
 
@@ -621,7 +621,7 @@ Both commands must print a path. If either prints nothing, install that command 
 Fetch the AppImage URL from GitHub's latest published release and store it in `APPIMAGE_DOWNLOAD_URL`:
 
 ```bash
-APPIMAGE_DOWNLOAD_URL="$(curl --fail --silent --show-error "https://api.github.com/repos/BaudBound/BaudBound/releases/latest" | jq -er '.assets | map(select(.name | endswith(".AppImage"))) | if length == 1 then .[0].browser_download_url else error("expected exactly one AppImage asset") end')"
+APPIMAGE_DOWNLOAD_URL="$(curl --fail --silent --show-error "https://api.github.com/repos/BaudBound/baudbound/releases/latest" | jq -er '.assets | map(select(.name | endswith(".AppImage"))) | if length == 1 then .[0].browser_download_url else error("expected exactly one AppImage asset") end')"
 ```
 
 Print the stored URL so you can confirm that it points to the official BaudBound GitHub release:
@@ -630,7 +630,7 @@ Print the stored URL so you can confirm that it points to the official BaudBound
 printf '%s\n' "$APPIMAGE_DOWNLOAD_URL"
 ```
 
-The printed URL must begin with `https://github.com/BaudBound/BaudBound/releases/download/` and end with `.AppImage`.
+The printed URL must begin with `https://github.com/BaudBound/baudbound/releases/download/` and end with `.AppImage`.
 
 Create the Downloads directory if it does not already exist:
 

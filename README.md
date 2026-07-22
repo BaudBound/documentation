@@ -21,8 +21,7 @@ Production publishing requires the `wiki-production` environment and its
 
 ## Related repositories
 
-The runner is developed in [BaudBound/BaudBound](https://github.com/BaudBound/BaudBound).
+The runner is developed in [BaudBound/baudbound](https://github.com/BaudBound/baudbound).
 The visual editor is developed in [BaudBound/editor](https://github.com/BaudBound/editor).
 Shared machine-readable contracts are published from
 [BaudBound/contracts](https://github.com/BaudBound/contracts).
-

@@ -17,7 +17,7 @@ Use the interactive release helper:
 ./tools/runner-release.ps1
 ```
 
-It can check versions and prerequisites, run verification, create the tag, inspect artifacts, and publish only after explicit confirmation. The internal maintainer procedure remains in [docs/runner-release.md](https://github.com/BaudBound/BaudBound/blob/master/docs/runner-release.md) because it contains repository release operations rather than public product usage.
+It can check versions and prerequisites, run verification, create the tag, inspect artifacts, and publish only after explicit confirmation. The internal maintainer procedure remains in [docs/runner-release.md](https://github.com/BaudBound/baudbound/blob/master/docs/runner-release.md) because it contains repository release operations rather than public product usage.
 
 ## Release workflow
 

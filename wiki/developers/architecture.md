@@ -12,7 +12,7 @@ BaudBound is developed as a group of focused repositories in the
 
 | Repository | Responsibility |
 | --- | --- |
-| [`BaudBound/BaudBound`](https://github.com/BaudBound/BaudBound) | Runner CLI, headless service, Tauri desktop application, desktop UI, Rust crates, and runner release tooling |
+| [`BaudBound/baudbound`](https://github.com/BaudBound/baudbound) | Runner CLI, headless service, Tauri desktop application, desktop UI, Rust crates, and runner release tooling |
 | [`BaudBound/editor`](https://github.com/BaudBound/editor) | Next.js visual editor, node registry, verification, simulation, package export, and editor container |
 | [`BaudBound/contracts`](https://github.com/BaudBound/contracts) | Published JSON Schemas and machine-readable editor-to-runner contracts |
 | [`BaudBound/documentation`](https://github.com/BaudBound/documentation) | Public wiki source, navigation, validation, and Wiki.js publisher |
