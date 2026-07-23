@@ -71,10 +71,10 @@ Playwright exercises the built UI and should be used for interaction, responsive
 Run these commands from the runner repository root:
 
 ```text
-pnpm --dir apps/baudbound/ui install --frozen-lockfile
-pnpm --dir apps/baudbound/ui typecheck
-pnpm --dir apps/baudbound/ui test
-pnpm --dir apps/baudbound/ui build
+pnpm --dir ui install --frozen-lockfile
+pnpm --dir ui typecheck
+pnpm --dir ui test
+pnpm --dir ui build
 ```
 
 Vitest contracts cover view-model formatting and client behavior. Typecheck verifies Tauri payload assumptions on the TypeScript side. The production Vite build is also consumed by the Rust/Tauri bundle.
@@ -95,13 +95,13 @@ Publisher tests cover metadata, links, assets, navigation, GraphQL safety, owner
 | --- | --- |
 | **Runner CI** | Windows and Linux Rust workspace, desktop UI gates, contract snapshots, and scheduled RustSec advisory checks |
 | **Runner Release** | Full quality and advisory gates, version verification, signed Windows/Linux packages, updater metadata, and draft release |
-| **Editor CI** | Validate the editor, its vendored contracts, and its container image in `BaudBound/editor` |
+| **Editor CI** | Validate the editor, its pinned contracts submodule, and its container image in `BaudBound/editor` |
 | **Contracts CI** | Validate JSON contracts and publish their static container image in `BaudBound/contracts` |
 | **Wiki Documentation** | Validate and reconcile repository pages and static navigation with Wiki.js |
 
 ### Cross-repository contract checks
 
-The editor produces the package language consumed by Rust. Each consumer vendors an exact reviewed snapshot from `BaudBound/contracts`. Local CI verifies that snapshot against the consumer implementation. Contract updates therefore require coordinated pull requests rather than downloading another repository during a build.
+The editor produces the package language consumed by Rust. The editor and runner pin exact reviewed commits from `BaudBound/contracts` through Git submodules. Local CI verifies the pinned revision against the consumer implementation. Contract updates therefore require a contracts change followed by coordinated consumer pull requests that update their submodule pointers.
 
 ## Change-to-test matrix
 
@@ -120,9 +120,9 @@ The editor produces the package language consumed by Rust. Each consumer vendors
 | Wiki page/navigation/publisher | publisher tests and validate, rendered wide/narrow inspection |
 | Release tooling/version | release verification helper and full release quality gate |
 
-## Development helper
+## Development helpers
 
-On Windows, `./tools/development.ps1` opens an arrow-key menu for common development loops. It can launch the desktop app, UI, editor, headless service, status, installs, checks, tests, editor E2E, schemas, and builds.
+From the `tooling` repository, `./development.ps1` opens an arrow-key menu for all local development helpers. It can launch the runner development menu, editor, website, and get service. It can also validate contracts and run shared checks, builds, or dependency installation.
 
 Choose **Build runner packages** for a local runner package build. The next menu asks for **Both**, **Linux**, or **Windows**. Windows packages are NSIS installers built directly on Windows. Linux builds produce the AppImage, Debian package, and RPM package in a local Ubuntu 22.04 Docker container. Docker Desktop must be running with Linux containers when building Linux on Windows.
 
@@ -131,7 +131,7 @@ Local packages are unsigned and intended only for development and installation t
 The same task can be started without the menu:
 
 ```powershell
-./tools/development.ps1 -Action RunnerBuild -Platform Both
+./development.ps1 -Action Runner -RunnerAction RunnerBuild -Platform Both
 ```
 
 Build output is kept separate from normal development binaries:

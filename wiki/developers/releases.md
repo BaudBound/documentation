@@ -7,17 +7,17 @@ tags: [developers, releases]
 
 BaudBound versions must agree across the Cargo workspace, Tauri configuration, and desktop UI package metadata. Release tags use `vMAJOR.MINOR.PATCH` and are created from a clean, verified `master` commit.
 
-`apps/baudbound/scripts/verify-release-version.mjs` checks that the tag, root Cargo workspace, `apps/baudbound/tauri.conf.json`, and `apps/baudbound/ui/package.json` agree before packaging.
+`scripts/verify-release-version.mjs` checks that the tag, root Cargo workspace, `tauri.conf.json`, and `ui/package.json` agree before packaging.
 
 The release workflow builds a Windows NSIS installer plus Linux AppImage, Debian, and RPM packages. It signs updater artifacts, creates a draft GitHub release, publishes `latest.json` with platform URLs and signatures, and generates `SHA256SUMS`. The private updater key and password live in protected GitHub secrets. Only the public key is committed in application configuration.
 
-Use the interactive release helper:
+Clone the `tooling` repository beside the runner repository, then use its interactive release helper:
 
 ```powershell
-./tools/runner-release.ps1
+./release.ps1
 ```
 
-It can check versions and prerequisites, run verification, create the tag, inspect artifacts, and publish only after explicit confirmation. The internal maintainer procedure remains in [docs/runner-release.md](https://github.com/BaudBound/baudbound/blob/master/docs/runner-release.md) because it contains repository release operations rather than public product usage.
+It can check versions and prerequisites, run verification, create the tag, inspect artifacts, and publish only after explicit confirmation.
 
 ## Release workflow
 

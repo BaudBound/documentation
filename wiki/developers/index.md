@@ -7,11 +7,11 @@ tags: [developers, architecture]
 
 This section is for people who want to build BaudBound from source, contribute a change, review architecture, publish documentation, or prepare a release. Product users do not need the developer tools described here.
 
-BaudBound is a TypeScript and Rust workspace. A workspace is one repository containing several applications, libraries, tests, and build tools that are developed together. Changes should preserve explicit ownership boundaries, deterministic validation, native platform implementations, and tests proportional to behavior and risk.
+BaudBound is developed across focused repositories in the [BaudBound GitHub organization](https://github.com/BaudBound). The runner repository contains a Rust workspace with the runner application and its internal crates. The editor, contracts, documentation, installer service, website, official script repository, and shared tooling each have their own repository. Changes should preserve explicit ownership boundaries, deterministic validation, native platform implementations, and tests proportional to behavior and risk.
 
-## Applications
+## Project areas
 
-The [editor repository](https://github.com/BaudBound/editor) contains the Next.js visual editor. The [runner repository](https://github.com/BaudBound/baudbound) contains the unified runner CLI and Tauri desktop application. Shared schemas and machine-readable contracts live in the [contracts repository](https://github.com/BaudBound/contracts).
+The [editor repository](https://github.com/BaudBound/editor) contains the Next.js visual editor. The [runner repository](https://github.com/BaudBound/baudbound) contains the unified runner CLI and Tauri desktop application. Shared schemas and machine-readable contracts live in the [contracts repository](https://github.com/BaudBound/contracts). The editor and runner pin that repository as a Git submodule so each build uses one reviewed contracts commit.
 
 | Area | Owns | Start here |
 | --- | --- | --- |
@@ -19,8 +19,9 @@ The [editor repository](https://github.com/BaudBound/editor) contains the Next.j
 | Unified runner app | Clap commands, service process, Tauri commands, tray, updater, desktop native adapters | [Runner Development](runner.md) |
 | Desktop UI | Operator views and typed Tauri client | [Runner Development](runner.md) |
 | Schemas | Public package-document and per-node JSON Schemas | [BBS Package Format](../package-format/index.md) |
-| Tools | Development menu, release helper, and Wiki.js publisher | [Contributing and Setup](setup.md) |
-| Workflows | Cross-platform CI, release packaging, containers, schemas, and wiki publication | [Testing and CI](testing-ci.md) |
+| Shared tooling | Development menu, multi-repository checks, local package builds, and release helper | [Contributing and Setup](setup.md) |
+| Documentation | Wiki source, validation, Wiki.js publisher, and navigation | [Wiki Documentation](wiki-documentation.md) |
+| Workflows | Repository-specific CI, release packaging, containers, contracts, and wiki publication | [Testing and CI](testing-ci.md) |
 
 ## Rust crates
 

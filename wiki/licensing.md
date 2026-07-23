@@ -9,7 +9,7 @@ BaudBound is source available for noncommercial use and welcomes community contr
 
 ## Software
 
-Source code, schemas, configuration, build scripts, and executable software are provided under the [PolyForm Noncommercial License 1.0.0](https://github.com/BaudBound/baudbound/blob/master/LICENSE.md).
+Source code, schemas, configuration, build scripts, and executable software are provided under the PolyForm Noncommercial License 1.0.0. Each BaudBound repository contains the license file that controls its contents. For example, the runner terms are in the [`BaudBound/baudbound` license](https://github.com/BaudBound/baudbound/blob/master/LICENSE.md), and the editor terms are in the [`BaudBound/editor` license](https://github.com/BaudBound/editor/blob/master/LICENSE.md).
 
 The license permits personal use, research, experimentation, education, qualifying nonprofit and government uses, modification, and redistribution for permitted noncommercial purposes. Any redistribution must include the license terms or their URL and the required notice.
 
@@ -17,19 +17,19 @@ The license does not grant commercial-use permission. Contact the project owner 
 
 ## Documentation and creative content
 
-Original wiki content, the repository README, project screenshots and diagrams, and original non-code website content are provided under [CC BY-NC-SA 4.0](https://github.com/BaudBound/baudbound/blob/master/CONTENT-LICENSE.md).
+Original wiki content, documentation screenshots and diagrams, and the documentation repository README are provided under [CC BY-NC-SA 4.0](https://github.com/BaudBound/documentation/blob/master/CONTENT-LICENSE.md). Content in another BaudBound repository is controlled by the license files in that repository.
 
 You may share and adapt covered content for noncommercial purposes when you:
 
 1. Credit "NATroutter".
-2. Link to <https://github.com/BaudBound/baudbound>.
+2. Link to <https://github.com/BaudBound/documentation>.
 3. Link to the CC BY-NC-SA 4.0 license.
 4. State whether you changed the content.
 5. Publish adaptations under the same license.
 
 ## Name and logos
 
-The BaudBound name, logos, word marks, and other distinctive brand identifiers are owned by NATroutter and excluded from the software and content licenses. The [brand notice](https://github.com/BaudBound/baudbound/blob/master/TRADEMARKS.md) permits accurate references and attribution but does not permit branding a modified distribution as BaudBound or implying project endorsement.
+The BaudBound name, logos, word marks, and other distinctive brand identifiers are owned by NATroutter and excluded from the software and content licenses. The [brand notice](https://github.com/BaudBound/documentation/blob/master/TRADEMARKS.md) permits accurate references and attribution but does not permit branding a modified distribution as BaudBound or implying project endorsement.
 
 ## Contributions
 

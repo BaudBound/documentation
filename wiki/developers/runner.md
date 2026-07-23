@@ -5,7 +5,7 @@ tags: [developers, runner, rust]
 ---
 # Runner Development
 
-Keep `apps/baudbound/src/main.rs` in the runner repository limited to top-level parsing and dispatch. Commands live under `commands/`. Service options, runtime, status, webhooks, and trigger loading live under `service/`. Tauri commands bridge UI requests into shared application services rather than reimplementing CLI behavior.
+Keep `src/main.rs` in the runner repository limited to top-level parsing and dispatch. Commands live under `commands/`. Service options, runtime, status, webhooks, and trigger loading live under `service/`. Tauri commands bridge UI requests into shared application services rather than reimplementing CLI behavior.
 
 Crates define ownership boundaries. Avoid large crate-root implementation files and organize source into domain folders. Public APIs should expose validated types and narrow operations. Storage, policy, and native adapters remain replaceable behind explicit interfaces.
 

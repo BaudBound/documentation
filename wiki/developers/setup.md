@@ -13,27 +13,35 @@ Install Git. Runner development also needs Rust 1.95 or newer, Node.js 24, pnpm 
 
 ## Clone a repository
 
-Replace `REPOSITORY` with the repository name you need.
+Replace `REPOSITORY` with the repository name you need. Cloning with `--recurse-submodules` also initializes the pinned contracts used by the runner and editor. The option is harmless for repositories that do not have a submodule.
 
 ```text
-git clone https://github.com/BaudBound/REPOSITORY.git
+git clone --recurse-submodules https://github.com/BaudBound/REPOSITORY.git
 cd REPOSITORY
 ```
 
-Common choices are `BaudBound`, `editor`, `contracts`, `documentation`, `get`, and `website`.
+Common choices are `baudbound`, `editor`, `contracts`, `documentation`, `get`, `repository`, `tooling`, and `website`.
+
+For an existing runner or editor checkout, initialize its pinned contracts with:
+
+```text
+git submodule update --init --recursive
+```
 
 ## Runner development
 
 Install desktop UI dependencies from the runner repository root:
 
 ```text
-pnpm --dir apps/baudbound/ui install --frozen-lockfile
+pnpm --dir ui install --frozen-lockfile
 ```
 
-Start the Windows development helper:
+The runner source is at the repository root. `src/` contains the application, `ui/` contains the desktop interface, `crates/` contains the Rust libraries, and `contracts/` is the pinned contracts submodule.
+
+Clone the `tooling` repository beside the runner repository, then start the runner development menu from the tooling repository:
 
 ```powershell
-./tools/development.ps1
+./development.ps1 -Action Runner
 ```
 
 Run the CLI directly:
@@ -58,7 +66,33 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The editor vendors its pinned schema and runner contract snapshots under `contracts/`. Update them deliberately when the shared contracts revision changes.
+The editor uses the shared contracts repository as a submodule under `contracts/`. Update its pinned commit deliberately when shared contracts change.
+
+## Multi-repository development
+
+Clone the `tooling` repository beside the other BaudBound repositories.
+
+Use repository names for the sibling directories. A complete local checkout can look like this:
+
+```text
+BaudBound/
+  baudbound/
+  contracts/
+  documentation/
+  editor/
+  get/
+  repository/
+  tooling/
+  website/
+```
+
+From the tooling repository root, open the shared development menu:
+
+```powershell
+./development.ps1
+```
+
+The shared helper can launch the runner, editor, website, and get service. It can also validate contracts and run checks or builds across the maintained code repositories. Keep the repositories as sibling directories so the helper can discover them by their GitHub repository names.
 
 ## Documentation development
 
@@ -80,9 +114,9 @@ Runner changes normally require:
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-targets --all-features
-pnpm --dir apps/baudbound/ui typecheck
-pnpm --dir apps/baudbound/ui test
-pnpm --dir apps/baudbound/ui build
+pnpm --dir ui typecheck
+pnpm --dir ui test
+pnpm --dir ui build
 ```
 
 Editor changes normally require:

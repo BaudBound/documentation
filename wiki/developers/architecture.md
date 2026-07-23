@@ -6,30 +6,32 @@ tags: [developers, architecture, rust, editor]
 # Repository Architecture
 
 BaudBound is developed as a group of focused repositories in the
-[BaudBound GitHub organization](https://github.com/BaudBound). Each repository owns one deployable product or one clearly defined shared contract.
+[BaudBound GitHub organization](https://github.com/BaudBound). Each repository owns one product or one clearly defined supporting responsibility.
 
 ## Repository map
 
 | Repository | Responsibility |
 | --- | --- |
-| [`BaudBound/baudbound`](https://github.com/BaudBound/baudbound) | Runner CLI, headless service, Tauri desktop application, desktop UI, Rust crates, and runner release tooling |
+| [`BaudBound/baudbound`](https://github.com/BaudBound/baudbound) | Runner CLI, headless service, Tauri desktop application, desktop UI, and Rust crates |
 | [`BaudBound/editor`](https://github.com/BaudBound/editor) | Next.js visual editor, node registry, verification, simulation, package export, and editor container |
 | [`BaudBound/contracts`](https://github.com/BaudBound/contracts) | Published JSON Schemas and machine-readable editor-to-runner contracts |
 | [`BaudBound/documentation`](https://github.com/BaudBound/documentation) | Public wiki source, navigation, validation, and Wiki.js publisher |
 | [`BaudBound/get`](https://github.com/BaudBound/get) | Hosted Linux and Windows installation scripts at `get.baudbound.app` |
+| [`BaudBound/tooling`](https://github.com/BaudBound/tooling) | Shared development menu, repository coordination, local package builds, and runner release helper |
 | [`BaudBound/website`](https://github.com/BaudBound/website) | Public BaudBound website and container image |
 | [`BaudBound/repository`](https://github.com/BaudBound/repository) | Official BaudBound script repository metadata and packages |
+| [`BaudBound/.github`](https://github.com/BaudBound/.github) | Organization profile and shared public brand assets |
 
 ## Contract boundary
 
-The contracts repository publishes reviewed snapshots. The editor and runner vendor the exact contract revision they build against. Builds do not download moving files from another repository.
+The contracts repository publishes reviewed contract revisions. The editor and runner include `BaudBound/contracts` as a Git submodule pinned to an exact commit. Builds use that pinned commit instead of downloading changing contract files.
 
 When a contract changes:
 
-1. Update the owning implementation and generate the changed contract.
-2. Review and publish the contract change in `BaudBound/contracts`.
-3. Update the vendored snapshot in each affected consumer.
-4. Run the consumer's local contract checks.
+1. Update the owning implementation and generate the changed contract in the contracts submodule working tree.
+2. Review and commit the contract change in `BaudBound/contracts`.
+3. Update each affected consumer's submodule pointer to the reviewed contracts commit.
+4. Run the contract checks in every affected consumer repository.
 5. Update this documentation when user-visible behavior changed.
 
 This keeps builds reproducible while still making compatibility changes explicit in code review.
@@ -46,7 +48,7 @@ This keeps builds reproducible while still making compatibility changes explicit
 | `baudbound-triggers` | Schedule, file, process, webhook, WebSocket, hotkey, startup, and serial listeners |
 | `baudbound-core` | Validation and orchestration across package, security, storage, runtime, actions, and triggers |
 
-The `apps/baudbound` package in the runner repository composes these crates and provides the CLI, Tauri host, desktop adapters, runner paths, service lifecycle, and update integration.
+The root `baudbound` package in the runner repository composes these crates and provides the CLI, Tauri host, desktop adapters, runner paths, service lifecycle, and update integration.
 
 ## Package execution flow
 

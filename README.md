@@ -21,7 +21,11 @@ Production publishing requires the `wiki-production` environment and its
 
 ## Related repositories
 
-The runner is developed in [BaudBound/baudbound](https://github.com/BaudBound/baudbound).
-The visual editor is developed in [BaudBound/editor](https://github.com/BaudBound/editor).
-Shared machine-readable contracts are published from
-[BaudBound/contracts](https://github.com/BaudBound/contracts).
+BaudBound is maintained as focused repositories in the
+[BaudBound organization](https://github.com/BaudBound). The runner is in
+[BaudBound/baudbound](https://github.com/BaudBound/baudbound), the visual editor
+is in [BaudBound/editor](https://github.com/BaudBound/editor), and shared
+machine-readable contracts are in
+[BaudBound/contracts](https://github.com/BaudBound/contracts). Shared local
+development and release helpers are in
+[BaudBound/tooling](https://github.com/BaudBound/tooling).

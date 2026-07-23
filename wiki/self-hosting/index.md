@@ -42,7 +42,7 @@ Add this configuration:
 ```yaml
 services:
   editor:
-    image: ghcr.io/natroutter/baudbound-editor:latest
+    image: ghcr.io/baudbound/editor:latest
     container_name: baudbound-editor
     restart: unless-stopped
     ports:
