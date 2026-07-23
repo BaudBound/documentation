@@ -63,9 +63,11 @@ Update discovery uses the official BaudBound release feed compiled into the runn
 | Key | Type and default | Meaning |
 | --- | --- | --- |
 | `updates.automatic_checks` | boolean. `true` | Allows automatic checks in the desktop app, interactive CLI sessions, and the long running service |
-| `updates.check_interval_hours` | positive integer. `24` | Minimum time between successful automatic checks |
+| `updates.check_interval_hours` | positive integer. `24` | Minimum time between automatic application checks, enabled repository refreshes, and automatic installed-script checks |
 
 The desktop application checks when it starts. Interactive CLI commands check when they start. A running `baudbound serve` process continues checking at the configured interval. Failed checks do not stop scripts or listener services. Run `baudbound update check` when you want to check immediately.
+
+The desktop app also refreshes enabled script repositories in the background when it starts and when this interval has elapsed. Repository refresh only updates the cached Browse Scripts catalog. It does not download or install script packages. Automatic checks for an installed script remain disabled until you enable them for that script.
 
 ## Desktop application settings
 

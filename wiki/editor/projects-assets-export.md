@@ -15,7 +15,7 @@ Open **Project Settings** from the editor top bar. These values are stored in th
 | --- | --- | --- |
 | **Name** | Human-readable project and package name | Required. Use a concise name that distinguishes the automation. |
 | **Script Version** | Published version of this script | Use semantic versions such as `1.0.0`. Increase it before publishing changed package bytes. |
-| **Update URL** | Optional public location of `update.json` | Use an HTTPS URL whose filename is `update.json`. The file may be published after the first export. |
+| **Repository URL** | Optional public location of `repository.json` | Use an HTTPS URL whose filename is `repository.json`. The file may be published after the first export. |
 | **Target Runtime** | Intended operating system and desktop/headless environment | Choose before adding platform-specific nodes. See [Target Runtimes](target-runtimes.md). |
 | **Description** | Explains what the package does | State its trigger, side effects, and intended operator. |
 | **Author** | Human-readable creator or organization | Informational. It is not a cryptographic signature. |
@@ -116,7 +116,7 @@ The editor checks graph structure, node configuration, variables, assets, target
 
 Warnings require review but may not block export. Read [Verification and Simulation](simulation.md) for the difference between failures, warnings, and risk notices.
 
-After verification passes, generate the package. The final view offers **Download package** and **Create update.json** from the same verified package bytes. Use the descriptor option only when publishing remote script updates. Read [Publishing Script Updates](publishing-script-updates.md) for the complete workflow.
+After verification passes, generate the package. The final view offers **Download package** and **Create repository entry** from the same verified package bytes. Use the repository option when publishing the script for browsing and updates. Read [Publishing Script Repositories](publishing-script-repositories.md) for the complete workflow.
 
 ## Integrity and archive handling
 

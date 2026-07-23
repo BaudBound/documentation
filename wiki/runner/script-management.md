@@ -129,44 +129,99 @@ Removal deletes the installed package copy and script row. Database foreign-key 
 > Removal is not a temporary disable operation. Use `baudbound script disable SCRIPT` when you want to keep package state and stop unattended listeners.
 {.is-warning}
 
-## Remote import and update checks
+## Direct remote packages
 
-The desktop **Import** command can use a local `.bbs` file, a direct public `.bbs` URL, or a public `update.json` URL. The desktop **Update** command accepts a local `.bbs` file or a direct public `.bbs` URL.
+The desktop **Import** command accepts a local `.bbs` file or a direct public HTTPS address that returns a `.bbs` package. The desktop **Update** command accepts the same two package sources.
 
-A remote package is downloaded into protected temporary storage. The runner validates it and displays its identity, version, SHA256, target, risk, permissions, and capabilities before installation. Installing does not approve or run it.
+Repository addresses do not belong in Import or Update. Add a `repository.json` address through **Browse Scripts** instead.
 
-When an installed package declares an update URL, its details dialog contains an **Updates** section. Choose **Check for updates** to check only that script. Choose **Check updates** on the main Scripts page to check every configured script. Scripts without an update URL are listed as **Not configured** and are not contacted.
+A remote package is downloaded into protected temporary storage. The runner validates it and displays its identity, version, SHA256, target, risk, permissions, and capabilities before installation. Installing does not approve, enable, or run it.
 
-The main page can show these states:
+Remote addresses must use public HTTPS destinations. The runner rejects credentials in URLs, unsafe redirects, local addresses, private network addresses, oversized responses, unexpected filenames, hash mismatches, reused versions with changed bytes, and downgrades.
+
+## Browse and manage repositories
+
+Open **Browse Scripts** to view scripts published through configured repositories.
+
+The official BaudBound repository is configured automatically. It can be disabled, but it cannot be removed. The Official label identifies who manages the list. It does not bypass package validation or guarantee that a script is harmless.
+
+To add another repository:
+
+1. Choose **Repository management**.
+2. Choose **Add repository**.
+3. Enter a public HTTPS address ending in `repository.json`.
+4. Choose **Preview repository**.
+5. Review its name, description, address, and script count.
+6. Choose **Add repository** to confirm.
+
+Adding or refreshing a repository contacts its hosting server. The server can observe your public IP address and request time. BaudBound does not send script secrets, browser credentials, cookies, or private authentication headers.
+
+Enabled repositories refresh in the background when the desktop runner starts and after the configured update check interval has elapsed. The refresh runs outside the interface thread, so you can continue using BaudBound while it downloads and validates the repository.
+
+Repository controls can:
+
+1. Enable or disable a repository.
+2. Refresh one repository.
+3. Refresh every enabled repository.
+4. Remove a user-added repository after confirmation.
+
+Removing a repository deletes its cached browser entries. It does not uninstall scripts that were installed from it. Those scripts remain installed, but their repository update source becomes unavailable.
+
+If a refresh fails, the last valid cached script list stays available and the repository shows its latest error. Invalid or incomplete data never replaces a valid cache.
+
+The background repository refresh updates the Browse Scripts catalog. It does not download script packages and it does not install anything. The **Automatic update checks** setting for an installed script is separate. That setting controls whether BaudBound checks the repository entry for that installed script and reports a newer version.
+
+Search is available directly above the script list. Choose **Filters** to narrow scripts by repository, target, risk, permission, capability, and installation state. Select the filters you need, then choose **Apply filters**. Open a result to read its complete description, links, compatibility, permissions, capabilities, version, and release notes.
+
+Browser entries can show:
 
 | State | Meaning |
 | --- | --- |
-| **Not configured** | The package does not declare an update URL |
-| **Not checked** | An update URL exists but no successful check matches it yet |
-| **Up to date** | The descriptor is valid and does not publish a newer version |
-| **Update available** | A valid descriptor publishes a newer version |
-| **Check failed** | The descriptor could not be fetched or validated |
+| **Not installed** | The script is available for package review |
+| **Installed** | This version is already installed from the same repository |
+| **Update available** | The same repository publishes a newer version |
+| **Incompatible** | The script target is not supported by this runner |
+| **Unavailable** | Repository information did not match the downloaded package |
+| **Installed from another repository** | A repository with the same script ID cannot take over the installed script |
+
+Choose **Install** or **Review update** to download a selected package. The runner checks its exact size, SHA256, identity, version, runtime, permissions, capabilities, and risk before opening package review.
+
+Repository permissions, capabilities, target, and risk are previews. The downloaded `.bbs` package remains authoritative.
+
+When repository information differs from the validated package, BaudBound blocks the operation and flags the repository. A user-added repository can be kept or removed. The official repository is also blocked on mismatch, but it cannot be removed.
+
+## Installed script update checks
+
+When an installed package declares a repository URL, its details dialog contains an **Updates** section. Choose **Check for updates** to check only that script. Choose **Check updates** on the main Scripts page to check every configured script.
+
+The main page can show:
+
+| State | Meaning |
+| --- | --- |
+| **Not configured** | The package does not declare a repository URL |
+| **Not checked** | A repository URL exists but no successful check matches it yet |
+| **Up to date** | The repository does not publish a newer version |
+| **Update available** | The repository publishes a newer version for the exact script ID |
+| **Check failed** | The repository could not be fetched or validated |
 | **Unavailable** | The installed package metadata cannot be inspected |
 
-Choose **Review update** to download the discovered package. The runner verifies the package against the descriptor again before showing the review. Replacing the installed package makes the previous approval stale. Review and approve the new exact hash before enabling or running it.
+Choose **Review update** to download the discovered package. The runner fetches the repository and verifies the package again before showing the review. Replacing the installed package makes the previous approval stale. Review and approve the new exact hash before enabling or running it.
 
 **Update all** creates a review queue. It does not approve packages as a group. Review, install, skip, or cancel each package separately.
 
-Automatic checks are disabled for every script by default. Enabling **Automatic update checks** requires confirmation because the publisher's server can observe the runner's public IP address and request time. Automatic checks only discover metadata. They never download or install a package.
-
-Remote URLs must use public HTTPS destinations. The runner rejects credentials in URLs, unsafe redirects, local addresses, private network addresses, oversized responses, unexpected filenames, hash mismatches, reused versions with changed bytes, and downgrades.
+Automatic checks are disabled for every script by default. Enabling **Automatic update checks** requires confirmation because the repository server can observe the runner's public IP address and request time. Automatic checks only discover a new version. They never download or install a package.
 
 > A valid package is not automatically trustworthy. Install scripts only from publishers you trust. BaudBound checks structure, integrity, compatibility, declared access, and exact package bytes. It cannot determine the intentions of a publisher or script.
 {.is-warning}
 
-Authors can read [Publishing Script Updates](../editor/publishing-script-updates.md) for the complete `update.json` and GitHub publishing workflow.
+Authors can read [Publishing Script Repositories](../editor/publishing-script-repositories.md) for the complete repository and publishing workflow.
 
 ## Desktop equivalents
 
 | CLI task | Scripts view |
 | --- | --- |
 | `baudbound script import PACKAGE` | **Import** |
-| `baudbound script list` / `baudbound script inspect SCRIPT` | Script row, **About**, and expandable details |
+| `baudbound script list` / `baudbound script inspect SCRIPT` | Script row and **View details** |
 | `baudbound script approve SCRIPT` | Approval review dialog |
 | `baudbound script enable SCRIPT` / `baudbound script disable SCRIPT` | Row action menu |
 | `baudbound script run SCRIPT` | **Run** button |
