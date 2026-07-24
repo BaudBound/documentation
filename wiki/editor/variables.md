@@ -113,7 +113,7 @@ Trigger payload fields use the trigger node ID in the same way. Action outputs b
 
 Fallible actions expose structured `error` data when execution continues through the failed branch. Common fields include `message`, `code`, `retryable`, and `details`.
 
-### Loop variables
+### For Each variables
 
 For Each writes the current item and zero-based index into the variable names configured on that node. These are runtime values and are replaced for each iteration. Choose names that do not collide with other writable variables in the loop body.
 

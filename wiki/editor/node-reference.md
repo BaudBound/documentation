@@ -155,14 +155,32 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Runtime:** the first equal case wins. Numeric variables and calculated results match equivalent numeric literals even when their displayed formatting differs. Two text values still require exactly the same text.
 - **Example:** route `{{event_type}}` to `created`, `updated`, or default.
 
-### Loop
+### Repeat
 
-- **Action type:** `control.loop`. Capability `runtime.loop`. Low risk.
-- **Configuration:** variable-aware non-negative **Repeat count**.
-- **Flow:** `loop` executes the body. `done` continues after all iterations.
-- **Outputs/data:** loop index variables are available through runtime loop context.
-- **Graph rule:** do not connect the body back to Loop. The runtime repeats it.
-- **Simulation:** visibly repeats the body at selected speed.
+- **Action type:** `control.repeat`. Capability `runtime.repeat`. Low risk.
+- **Configuration:** a variable-aware whole-number **Repeat count** from `1` through `18446744073709551615`.
+- **Flow:** `repeat` executes the body once for every iteration. `done` continues after every iteration finishes or after Break Loop ends the Repeat early.
+- **Graph rule:** let the body end naturally. Do not connect the body back to Repeat because the runner starts each new iteration automatically.
+- **Simulation:** repeats the body with the same count and flow behavior used by the runner.
+
+### Break Loop
+
+- **Action type:** `control.break_loop`. Capability `runtime.break_loop`. Low risk.
+- **Placement:** connect it inside the body of Repeat, While, or For Each.
+- **Flow:** ends the nearest active loop immediately and continues from that loop's `done` output.
+- **Nested loops:** only the innermost active loop ends. An outer loop continues normally.
+- **Ports:** it has an input but no output because execution resumes from the loop's `done` output.
+- **Failure:** verification rejects a Break Loop that is not inside a loop body. The runner also stops with a clear error if an invalid package reaches this state.
+
+### Continue Loop
+
+- **Action type:** `control.continue_loop`. Capability `runtime.continue_loop`. Low risk.
+- **Placement:** connect it inside the body of Repeat, While, or For Each.
+- **Flow:** skips every remaining step in the current iteration and starts the nearest loop's next iteration.
+- **Nested loops:** only the innermost active loop advances.
+- **Ports:** it has an input but no output because execution returns directly to the loop.
+- **Completion:** when no next iteration exists, the loop continues from its `done` output.
+- **Failure:** verification rejects a Continue Loop that is not inside a loop body. The runner also stops with a clear error if an invalid package reaches this state.
 
 ### While
 

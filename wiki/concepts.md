@@ -17,7 +17,7 @@ Use this page when a BaudBound term is unfamiliar or when two similar terms seem
 | **Edge** | A directed connection from one node output to another node input. Fan-out edges have an explicit numbered order and run sequentially. |
 | **Trigger** | A node that begins a run. A trigger can be manual or can wait for an event such as a schedule, request, file change, hotkey, process, startup, or serial input. |
 | **Action** | A node that performs work, such as logging, transforming data, calling a URL, managing a file, starting a process, or interacting with supported hardware or desktop APIs. |
-| **Control flow** | A node that chooses or repeats execution paths, such as If/Else, Switch, Loop, While, or For Each. |
+| **Control flow** | A node that chooses or repeats execution paths, such as If/Else, Switch, Repeat, While, For Each, Break Loop, or Continue Loop. |
 | **Run** | One execution of a script, beginning at a trigger and ending in success, failure, cancellation, or another recorded terminal state. A run has its own ID, logs, node results, and variable snapshots. |
 | **Simulation** | An editor-side test run using supplied trigger data and simulated or controlled side effects. Simulation does not grant runner access or replace production validation. |
 

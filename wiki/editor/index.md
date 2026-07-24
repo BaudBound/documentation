@@ -43,11 +43,13 @@ Node IDs are stable within the project and appear in output references, edges, l
 
 Drag from an output handle to a compatible input handle. The edge follows the project-wide style selected in the canvas toolbar.
 
-Ordinary nodes use an `out` execution output. Fallible actions expose **success** and **failed** outputs. The failed branch provides structured `error` data. Control nodes expose named branches such as **true**, **false**, **loop**, **done**, switch cases, or a default route.
+Ordinary nodes use an `out` execution output. Fallible actions expose **success** and **failed** outputs. The failed branch provides structured `error` data. Control nodes expose named branches such as **true**, **false**, **repeat**, **loop**, **done**, switch cases, or a default route.
 
 Triggers have no execution input because they begin runs. A workflow can contain multiple trigger types, but only one Manual trigger is allowed.
 
-Loop body edges leave the **loop** output and completion continues from **done**. Do not connect the body back to the loop node. The runtime owns repetition.
+The Repeat body leaves the **repeat** output. While and For Each bodies leave the **loop** output. Completion continues from **done**. Do not connect a body back to its control node because the runner starts each new iteration automatically.
+
+Place Break Loop inside a Repeat, While, or For Each body when that loop must end early. Execution continues from the nearest loop's **done** output. Place Continue Loop inside a loop body when the rest of the current iteration should be skipped. Continue Loop starts the next iteration of the nearest loop. Both nodes affect only the innermost active loop when loops are nested.
 
 One output can connect to several nodes. Those branches run one after another in the numbered order shown on the edges. The first connection created from an output is first, and each new connection is added to the end.
 
