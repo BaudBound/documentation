@@ -24,9 +24,9 @@ The Verify command and export gate run these rule families:
 
 | Check | What it validates |
 | --- | --- |
-| **Script metadata** | Required name and selected target runtime |
+| **Script metadata** | Required name and at least one selected target runtime |
 | **Secret references** | Unique declarations and no collision with writable variables |
-| **Target runtime** | Every node supports the selected platform/session target |
+| **Target runtimes** | Every node supports every selected operating system and session target |
 | **Graph structure** | Runnable nodes exist and at most one Manual trigger is present |
 | **Entry points** | At least one trigger and valid trigger configuration |
 | **Connections** | Source/target nodes and named handles exist |
@@ -60,6 +60,8 @@ Open **Simulation** in the inspector. Each trigger has a card containing fields 
 | **Runtime data** | Shows current variable and node-output snapshots |
 
 Only one trigger executes at a time. Stop an active run before firing another. Editing the graph cancels and resets the previous simulation state.
+
+Runtime variables reset to their package defaults before each simulated run. Persistent variables keep their latest simulated values for later runs in the current editor session. Changing a Variable Operation node from runtime scope to persistent scope makes later simulated writes use persistent state. Reloading the editor restores the saved package defaults because simulated persistent values are not exported.
 
 ## Trigger payload examples
 

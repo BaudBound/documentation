@@ -13,7 +13,7 @@ Use a separate project for each tutorial. After building a graph, trigger it in 
 
 This low-risk workflow writes a timestamped message once per minute while the background service is running.
 
-**Target runtime:** Generic Desktop or a supported headless runtime  
+**Target runtimes:** select each Windows or Linux Desktop or Headless environment where the workflow will run
 **Nodes:** [Schedule](../editor/node-reference.md#triggers), [Log](../editor/node-reference.md#data-and-output)
 **Runner requirement:** schedule triggers enabled and `baudbound serve` or the desktop background runner active
 

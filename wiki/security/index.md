@@ -76,7 +76,7 @@ Use [Approvals, Capabilities, and Risk](approvals-capabilities.md) for the compl
 
 ## Secrets
 
-Packages contain declarations such as a secret name, type, description, and whether it is required. Production values are configured on the runner after import. Stored values are encrypted, omitted from normal inspection, and redacted from runtime logs and stored snapshots where they are exposed to execution.
+Packages contain declarations such as a secret name, description, and whether it is required. Secret values are always text. Production values are configured on the runner after import. Stored values are encrypted, omitted from normal inspection, and redacted from runtime logs and stored snapshots where they are exposed to execution.
 
 The encryption key is part of the backup boundary. Database records without the matching key cannot be decrypted. See [Secrets](../runner/secrets.md) and [Storage, Backups, and Recovery](../runner/storage-backups.md).
 

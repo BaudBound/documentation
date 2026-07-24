@@ -236,7 +236,7 @@ The CLI `listen` command requires `--stdin` and accepts explicit test input. It 
 | Command | Behavior |
 | --- | --- |
 | `baudbound secret generate-key` | Prints a new `BAUDBOUND_SECRET_KEY` assignment for headless secret encryption. |
-| `baudbound secret list SCRIPT [--json]` | Lists declared secret names, types, requirements, and configured state without values. |
+| `baudbound secret list SCRIPT [--json]` | Lists declared secret names, requirements, and configured state without values. Secret values are always text. |
 | `baudbound secret set SCRIPT NAME` | Prompts securely for a declared secret value. |
 | `baudbound secret remove SCRIPT NAME` | Removes the configured value. |
 

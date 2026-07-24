@@ -58,14 +58,14 @@ The runner rejects an older version. It also rejects a changed package that reus
 1. Choose **Export**.
 2. Review the project information and calculated access.
 3. Complete verification.
-4. Generate the package.
-5. Choose **Download package**.
-6. Keep the export window open.
-7. Choose **Create repository entry**.
-8. Enter the final public package URL.
-9. Write optional Markdown release notes.
-10. Review the generated JSON.
-11. Choose **Copy repository JSON**.
+4. Wait while the verified package is prepared automatically.
+5. Choose **Create repository entry**.
+6. Enter the repository name, description, and optional homepage.
+7. Enter the final public package URL.
+8. Write optional Markdown release notes and use the Preview tab to review their formatting.
+9. Review the generated JSON.
+10. Choose **Copy repository JSON**.
+11. Choose **Download package**.
 
 The editor calculates the package size and SHA256 from the exact `.bbs` bytes offered by **Download package**. The JSON and package therefore describe the same export.
 
@@ -92,7 +92,10 @@ A one-script repository looks like this:
       "website": "https://example.com/inventory",
       "source": "https://github.com/example/inventory-script",
       "license": "PolyForm-Noncommercial-1.0.0",
-      "target_runtime": "Generic Desktop",
+      "target_runtimes": [
+        "Windows Desktop",
+        "Linux Desktop"
+      ],
       "minimum_runner_version": "2.0.0",
       "risk_level": "high",
       "tags": [
@@ -143,7 +146,7 @@ Each script entry contains:
 | `website` | Optional script website |
 | `source` | Optional source code or project URL |
 | `license` | License identifier or name |
-| `target_runtime` | Runtime required by the package |
+| `target_runtimes` | Exact operating system and session targets allowed by the package |
 | `minimum_runner_version` | Oldest compatible runner version |
 | `risk_level` | Preview of the package risk |
 | `tags` | Search terms |

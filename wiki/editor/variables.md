@@ -83,7 +83,7 @@ A stored variable is loaded at run start when the script contains a Variable Ope
 
 The **Default variables** panel at the top of the editor's **Variables** tab sits beside **Secret references**. It defines typed starting values that are saved in the `.bbs` package. The current variables are displayed below both declaration panels.
 
-Every default variable must have an explicit value. String and file path defaults cannot be blank, while values such as `false`, `0`, `[]`, and `{}` are valid explicit defaults. The value editor supports multiple lines, line numbers, Tab indentation, and structured JSON for types such as lists and objects. This makes the variable available from the beginning of a run, even when no earlier node has assigned it.
+Every default variable must have an explicit value. String and file path defaults cannot be blank, while values such as `false`, `0`, `[]`, and `{}` are valid explicit defaults. Boolean values use a `true` or `false` selector. Other types use the value editor with multiple lines, line numbers, Tab indentation, and structured JSON for lists and objects. This makes the variable available from the beginning of a run, even when no earlier node has assigned it.
 
 Choose one of these scopes:
 
@@ -150,7 +150,7 @@ Simulation uses browser-derived or clearly simulated system values. Do not assum
 
 ### Secrets
 
-Secrets are read-only variables declared by name and type in the editor. Their values are not included in the project or `.bbs` package. The runner stores values separately for each installed script and blocks a run when a required secret is missing.
+Secrets are read-only text variables declared by name in the editor. Their values are not included in the project or `.bbs` package. The runner stores values separately for each installed script and blocks a run when a required secret is missing.
 
 Simulation values are entered explicitly in the Secrets panel, remain in memory for that simulation session, and are not saved. Secret values and values derived from them are redacted from runner reports and logs where detected. Derived metadata is deliberately not created for secrets.
 

@@ -91,7 +91,7 @@ The login setting represents the desired operating system registration. BaudBoun
 | `runner.run_history_max_age_days` | positive integer days. `30` | Maximum age of retained runs | Lower values prune expired history immediately when the config is applied |
 | `runner.target_runtimes` | string array. `[]` | Empty uses host defaults. Explicit list restricts accepted package targets | Restart. Cannot grant unsupported targets |
 
-Supported target strings are `Generic Headless`, `Linux Headless`, `Windows Headless`, `Generic Desktop`, `Windows Desktop`, and `Linux Desktop`. A runner accepts only the host-appropriate subset.
+Supported target strings are `Linux Headless`, `Windows Headless`, `Windows Desktop`, and `Linux Desktop`. A runner accepts only the exact target for its current operating system and execution mode.
 
 ## External data limits
 
@@ -300,7 +300,7 @@ allow_unauthenticated_public_bind = false
 trigger_reload_seconds = 2
 run_history_max_records = 10000
 run_history_max_age_days = 30
-target_runtimes = ["Generic Headless", "Linux Headless"]
+target_runtimes = ["Linux Headless"]
 
 [display]
 time_format = "24-hour"

@@ -26,7 +26,7 @@ Use this page when a BaudBound term is unfamiliar or when two similar terms seem
 | Term | Meaning |
 | --- | --- |
 | **Package** | A portable `.bbs` archive exported by the editor. It contains the manifest, executable program, access declarations, optional editor data, and declared assets. The runner records a hash when installing it. |
-| **Manifest** | Package metadata such as script identity, display name, version requirements, target runtime, permissions, capabilities, and secrets. |
+| **Manifest** | Package metadata such as script identity, display name, version requirements, target runtimes, permissions, capabilities, and secrets. |
 | **Script identity** | The stable package ID used to recognize updates to the same installed script. It is different from the display name and filename. |
 | **Installed script** | A package revision imported into one runner's storage. The runner tracks whether it is enabled, approved, healthy, and eligible for trigger registration. |
 | **Package hash** | A digest of the package contents used to detect changes and bind approval to one exact revision. |
@@ -63,7 +63,7 @@ See [Variables and Data](editor/variables.md) and [Secrets](runner/secrets.md) f
 
 | Term | Meaning |
 | --- | --- |
-| **Target runtime** | The intended operating-system and session family, such as Windows desktop or Linux headless. It controls which nodes may be added and which runner can execute the package. |
+| **Target runtime** | One exact operating system and session combination, such as Windows Desktop or Linux Headless. A package may select several targets. |
 | **Permission** | A human-readable description of sensitive behavior requested by a node or package. Permissions carry a risk level. |
 | **Capability** | A machine-checkable identifier for a category of runtime access, such as file, process, network, serial, or desktop interaction. |
 | **Risk** | A review classification such as low, medium, or high that helps an operator focus on behavior with greater impact. Risk is not proof that a package is safe or unsafe. |

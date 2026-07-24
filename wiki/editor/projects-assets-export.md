@@ -16,13 +16,13 @@ Open **Project Settings** from the editor top bar. These values are stored in th
 | **Name** | Human-readable project and package name | Required. Use a concise name that distinguishes the automation. |
 | **Script Version** | Published version of this script | Use semantic versions such as `1.0.0`. Increase it before publishing changed package bytes. |
 | **Repository URL** | Optional public location of `repository.json` | Use an HTTPS URL whose filename is `repository.json`. The file may be published after the first export. |
-| **Target Runtime** | Intended operating system and desktop/headless environment | Choose before adding platform-specific nodes. See [Target Runtimes](target-runtimes.md). |
+| **Target Runtimes** | Operating systems and Desktop or Headless modes allowed to execute the package | Select every intended environment before adding platform-specific nodes. See [Target Runtimes](target-runtimes.md). |
 | **Description** | Explains what the package does | State its trigger, side effects, and intended operator. |
 | **Author** | Human-readable creator or organization | Informational. It is not a cryptographic signature. |
-| **Minimum Runner** | Oldest runner version allowed to execute the package | Raise this only when the workflow depends on a newer contract or runtime feature. |
+| **Minimum BaudBound Version** | Oldest BaudBound version allowed to execute the package | Raise this only when the workflow depends on a newer contract or runtime feature. |
 | **Website** | Optional project or product URL | Must be an HTTP or HTTPS URL. |
 | **Source** | Optional source URL | Use when reviewers can inspect the workflow's source or release process. |
-| **Tags** | Search and classification labels | Press Enter, Space, Tab, or comma to finish a tag. |
+| **Tags** | Search and classification labels | Press Enter, Space, Tab, or comma to finish a tag. Press Backspace in an empty tag field to remove the last tag. |
 
 The project has a stable manifest identity separate from its display name and exported filename. Importing an updated package with the same identity updates the installed script. A different identity creates another script.
 
@@ -83,7 +83,7 @@ Removing an asset that is still referenced causes verification to fail. Replace 
 > Never store passwords, API tokens, private keys, or other credentials as assets. Assets are ordinary package files and can be extracted by anyone who receives the `.bbs` file.
 {.is-warning}
 
-Use a [secret declaration](../runner/secrets.md) when the runner must supply sensitive data. The editor stores only the secret name, type, and description. Optional simulation values remain in the current browser session and are not exported.
+Use a [secret declaration](../runner/secrets.md) when the runner must supply sensitive data. Secret declarations always contain text. The editor stores only the secret name, description, and required state. Optional simulation values remain in the current browser session and are not exported.
 
 ## Executable and editor data
 
@@ -116,7 +116,7 @@ The editor checks graph structure, node configuration, variables, assets, target
 
 Warnings require review but may not block export. Read [Verification and Simulation](simulation.md) for the difference between failures, warnings, and risk notices.
 
-After verification passes, generate the package. The final view offers **Download package** and **Create repository entry** from the same verified package bytes. Use the repository option when publishing the script for browsing and updates. Read [Publishing Script Repositories](publishing-script-repositories.md) for the complete workflow.
+After verification passes, the editor prepares the package automatically. The final view offers **Create repository entry** and **Download package** from the same verified package bytes. Use the repository option when publishing the script for browsing and updates. Read [Publishing Script Repositories](publishing-script-repositories.md) for the complete workflow.
 
 ## Integrity and archive handling
 

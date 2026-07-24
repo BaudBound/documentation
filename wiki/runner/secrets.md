@@ -5,7 +5,7 @@ tags: [runner, security, secrets]
 ---
 # Secrets
 
-Packages declare required secret names, types, and descriptions. They never contain production secret values. The runner resolves values at execution time and fails clearly when a required secret is unavailable.
+Packages declare secret names, descriptions, and whether each value is required. Every secret is text. Packages never contain production secret values. The runner resolves values at execution time and fails clearly when a required secret is unavailable.
 
 In the examples below, replace `SCRIPT` with the installed script name or ID and `SECRET_NAME` with a secret declared by that script. Find both values with:
 
@@ -16,7 +16,7 @@ baudbound secret list SCRIPT
 
 ## Lifecycle
 
-1. Declare the secret's name, type, description, and required state in the editor.
+1. Declare the secret's name, description, and required state in the editor.
 2. Reference it as `{{SECRET_NAME}}` without entering the production value into project data.
 3. Export and import the package.
 4. Inspect the declaration and confirm its purpose.

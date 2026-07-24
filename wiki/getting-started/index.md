@@ -22,10 +22,10 @@ You do not need an account. Install the runner by following [Installation and Up
 1. Open the [BaudBound editor](https://editor.baudbound.app/).
 2. Choose **New project**.
 3. Set **Name** to `Hello BaudBound`.
-4. Keep **Target runtime** set to **Generic Desktop**.
+4. Keep **Windows Desktop** selected. If you use Linux, replace it with **Linux Desktop**.
 5. Choose **Create project**.
 
-The project name identifies the workflow in the editor and becomes the default package name. The target runtime limits the project to nodes that the intended runner can support.
+The project name identifies the workflow in the editor and becomes the default package name. Target runtimes state exactly which runner environments may execute the package.
 
 ## 2. Add and connect the nodes
 

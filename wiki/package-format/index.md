@@ -19,7 +19,7 @@ Do not manually edit or repack a `.bbs` file. Make changes in the editor and exp
 | `manifest.json` | Yes | Script identity, package/language versions, author metadata, runner requirement, assets, and secret declarations |
 | `program.json` | Yes | Executable nodes, edges, and entry trigger |
 | `permissions.json` | Yes | Declared permission list and highest risk level |
-| `capabilities.json` | Yes | Required capability list and target runtime |
+| `capabilities.json` | Yes | Required capability list and target runtimes |
 | `editor.json` | No | Non-executable canvas positions, comments, dimensions, and editor preferences |
 | `README.md` | No | Package-local human notes accepted by the parser |
 | `assets/` | No | Files declared by `manifest.json` and referenced by asset ID or normalized path |
@@ -40,7 +40,7 @@ No other root files are accepted. Directory entries do not count as package docu
 | `created_with`, `created_at`, `updated_at` | Exporting editor and timestamps |
 | `minimum_runner_version` | Oldest runner version allowed to execute the package |
 | `assets` | Declared asset records with ID, kind, media type, name, path, and byte size |
-| `secrets` | Name, type, description, and required flag. Never a secret value |
+| `secrets` | Name, description, and required flag. Every secret is text. Never a secret value |
 
 An update must keep the same `id`. A display name is not a stable update key and may not uniquely identify a script.
 
@@ -68,7 +68,7 @@ Canvas coordinates and comment presentation are not executable concerns and belo
 
 ### Access documents
 
-`permissions.json` contains `declared_permissions` and `risk_level`. `capabilities.json` contains `required_capabilities` and `target_runtime`. The runner independently derives all four concepts from the graph and rejects an understatement, overstatement, duplicate, unsupported target, or false risk level.
+`permissions.json` contains `declared_permissions` and `risk_level`. `capabilities.json` contains `required_capabilities` and `target_runtimes`. The runner independently derives all four concepts from the graph and rejects an understatement, overstatement, duplicate, unsupported target, or false risk level.
 
 Read [Approvals, Capabilities, and Risk](../security/approvals-capabilities.md) for their operator meaning.
 
