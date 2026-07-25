@@ -9,7 +9,7 @@ BaudBound versions must agree across the Cargo workspace, Tauri configuration, a
 
 `scripts/verify-release-version.mjs` checks that the tag, root Cargo workspace, `tauri.conf.json`, and `ui/package.json` agree before packaging.
 
-The release workflow builds a Windows NSIS installer plus Linux AppImage, Debian, and RPM packages. It signs updater artifacts, creates a draft GitHub release, publishes `latest.json` with platform URLs and signatures, and generates `SHA256SUMS`. The private updater key and password live in protected GitHub secrets. Only the public key is committed in application configuration.
+The release workflow builds a Windows NSIS installer plus Linux AppImage, Debian, and RPM packages. It signs updater artifacts, creates a draft GitHub release, publishes `latest.json` with platform URLs and signatures, and generates `SHA256SUMS`. The private updater key and password live in the protected `runner-release` GitHub environment. Only the public key is committed in application configuration.
 
 Clone the `tooling` repository beside the runner repository, then use its interactive release helper:
 
@@ -29,9 +29,10 @@ It can check versions and prerequisites, run verification, create the tag, inspe
 6. Tauri signs updater artifacts and uploads platform signatures.
 7. The workflow creates a **draft** GitHub release and generates `latest.json`.
 8. It inspects the Debian and RPM metadata, dependencies, installed files, desktop entry, and package scripts.
-9. It verifies every release asset and uploads `SHA256SUMS`.
-8. A maintainer checks artifacts on clean supported machines, release notes, updater metadata, and install/update behavior.
-9. Publish the draft only after every artifact passes.
+9. A read-only job verifies every release asset.
+10. A protected write job generates and uploads `SHA256SUMS` after verification succeeds.
+11. A maintainer checks artifacts on clean supported machines, release notes, updater metadata, and install/update behavior.
+12. Publish the draft only after every artifact passes.
 
 The draft prevents a partially uploaded release from becoming the automatic update target.
 
@@ -66,6 +67,36 @@ The scripts deliberately use `Cache-Control: no-store` behavior so updates becom
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Decrypt the private signing key in CI |
 
 Loss of the private updater key prevents producing updates trusted by existing installations. Exposure allows an attacker with release publication access to sign malicious updates. Back it up offline, restrict the GitHub environment, and rotate only through a deliberately designed migration.
+
+### Configure the protected environment
+
+1. Open `BaudBound/baudbound` on GitHub.
+2. Open **Settings**.
+3. Open **Environments**.
+4. Create an environment named `runner-release`.
+5. Add `TAURI_SIGNING_PRIVATE_KEY` as an environment secret.
+6. Add `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` as an environment secret.
+7. Restrict deployment branches and tags to the version tags accepted by the release workflow.
+8. Add a required reviewer when another trusted maintainer is available.
+9. Keep **Prevent self-review** disabled while there is only one maintainer.
+10. Remove the same two values from repository-level Actions secrets after a protected draft rehearsal succeeds.
+
+The signed `package` jobs and final checksum publication job reference this environment. They pause before publication access is provided when approval is required. Only the package jobs reference the signing values. The checksum job can update the verified draft but does not receive the signing key through its environment. Quality and artifact verification jobs receive read-only repository access and no signing key.
+
+Environment approval protects publication before a write-capable job starts. It cannot make approved third-party code trustworthy. Every external Action is therefore pinned to a complete commit SHA. When updating an Action, review the upstream release and commit, replace the SHA while preserving its readable version comment, then run the complete affected workflow.
+
+### Release security checklist
+
+- [ ] The release commit and tag contain the intended source and submodule revisions.
+- [ ] Both target-specific `cargo deny check` gates pass.
+- [ ] The production UI dependency audit passes.
+- [ ] Formatting, Clippy, Rust tests, UI tests, and the production UI build pass.
+- [ ] Every write-capable release job waits for the `runner-release` environment approval.
+- [ ] No quality or verification job receives signing secrets.
+- [ ] Windows and Linux packages are signed by the expected updater key.
+- [ ] Native package metadata and clean installation tests pass.
+- [ ] `latest.json`, signatures, checksums, and every expected asset pass inspection.
+- [ ] The GitHub release remains a draft until manual platform checks are complete.
 
 ## Review and rollback
 

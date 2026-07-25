@@ -43,6 +43,7 @@
                           "runner/cli-reference",
                           "security",
                           "security/approvals-capabilities",
+                          "security/official-blacklist",
                           "package-format",
                           "self-hosting",
                           "runner/linux-background-service",

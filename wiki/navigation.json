@@ -36,6 +36,7 @@
     { "id": "package-format", "kind": "link", "label": "BBS Package Format", "icon": "mdi-package-variant", "path": "package-format" },
     { "id": "security", "kind": "link", "label": "Security Model", "icon": "mdi-shield-check", "path": "security" },
     { "id": "security-approvals", "kind": "link", "label": "Approvals, Capabilities, and Risk", "icon": "mdi-shield-key", "path": "security/approvals-capabilities" },
+    { "id": "security-blacklist", "kind": "link", "label": "Official Blacklist", "icon": "mdi-shield-alert", "path": "security/official-blacklist" },
 
     { "id": "section-self-hosting", "kind": "header", "label": "Self-Hosting" },
     { "id": "self-hosting", "kind": "link", "label": "Editor Self Hosting", "icon": "mdi-server-network", "path": "self-hosting" },

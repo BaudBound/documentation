@@ -89,6 +89,7 @@ The login setting represents the desired operating system registration. BaudBoun
 | `runner.trigger_reload_seconds` | integer seconds. `2` | Interval for detecting installed-script registration changes | Restart service to change polling interval |
 | `runner.run_history_max_records` | positive integer. `10000` | Maximum number of complete run records retained across all scripts | Lower values prune existing history immediately when the config is applied |
 | `runner.run_history_max_age_days` | positive integer days. `30` | Maximum age of retained runs | Lower values prune expired history immediately when the config is applied |
+| `runner.run_history_max_bytes` | positive integer bytes. `1073741824` | Maximum database space used by retained run history | Oldest runs are pruned when count, age, or size reaches its limit |
 | `runner.target_runtimes` | string array. `[]` | Empty uses host defaults. Explicit list restricts accepted package targets | Restart. Cannot grant unsupported targets |
 
 Supported target strings are `Linux Headless`, `Windows Headless`, `Windows Desktop`, and `Linux Desktop`. A runner accepts only the exact target for its current operating system and execution mode.
@@ -102,8 +103,36 @@ These limits prevent one action from loading an unexpectedly large response or f
 | `limits.max_http_response_bytes` | positive integer. `10485760` | Maximum HTTP response body returned to a workflow |
 | `limits.max_file_download_bytes` | positive integer. `104857600` | Maximum file download size before the temporary download is removed |
 | `limits.max_file_read_bytes` | positive integer. `10485760` | Maximum regular file size accepted by File Read |
+| `limits.max_log_entry_bytes` | positive integer. `16384` | Maximum retained size of one log message |
+| `limits.max_runtime_variable_bytes` | positive integer. `16777216` | Maximum serialized size of one variable during active execution |
+| `limits.max_run_log_bytes` | positive integer. `2097152` | Maximum combined retained log size for one run |
+| `limits.max_retained_variable_bytes` | positive integer. `262144` | Maximum retained size of one variable in completed run history |
+| `limits.max_run_record_bytes` | positive integer. `8388608` | Maximum serialized size of one retained run record |
 
 File Download writes to a temporary file beside the destination. BaudBound replaces the destination only after the complete download passes the size limit. A failed oversized download does not leave partial destination data.
+
+These limits do not set a maximum run duration. An intentional endless workflow can keep running. When retained diagnostics reach a limit, BaudBound stores a clear truncation or suppression message and stops growing that retained output. Active values that exceed `max_runtime_variable_bytes` are rejected because allowing them to grow without a bound could exhaust memory.
+
+## Runner security policy
+
+Approval and runner policy answer different questions. Approval means that you trust one exact package revision. Runner policy decides which kinds of approved behavior this machine allows.
+
+| Key | Type/default | Meaning |
+| --- | --- | --- |
+| `security.policy.allow_shell_commands` | boolean. `true` | Allows approved packages to use shell command actions |
+| `security.policy.allow_dangerous_permissions` | boolean. `true` | Allows approved packages that require any Dangerous permission |
+| `security.policy.allow_public_network_listeners` | boolean. `true` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
+
+Changing a value to `false` cannot grant access. It only blocks affected scripts. A blocked script cannot register triggers or run manually. The error identifies the setting that blocked it. Repositories and packages cannot change these values.
+
+The defaults preserve the existing approval model. For a runner that only needs ordinary local automation, a stricter starting point is:
+
+```toml
+[security.policy]
+allow_shell_commands = false
+allow_dangerous_permissions = false
+allow_public_network_listeners = false
+```
 
 ## Trigger-family switches
 
@@ -129,6 +158,7 @@ Disabling a family prevents all scripts in that family from registering. Restart
 | `webhooks.bind` | string. `127.0.0.1` | Local IP/interface address | Non-loopback can expose routes to a network |
 | `webhooks.port` | integer. `43891` | `1-65535` and available | Must not conflict with another process |
 | `webhooks.max_body_bytes` | positive integer. `1048576` | Maximum accepted HTTP body | Bounds memory and request size |
+| `webhooks.max_connections` | positive integer. `128` | Maximum simultaneous accepted connections | Bounds sockets and slow clients |
 | `webhooks.allow_browser_origins` | string array. `[]` | Exact HTTP or HTTPS browser origins | Empty rejects browser-origin requests |
 | `webhooks.allow_unauthenticated_public_bind` | boolean. `false` | Permit a public listener while a trigger has auth disabled | Unsafe emergency override |
 
@@ -247,6 +277,7 @@ Add the account running BaudBound only to the group shown by the target system's
 trigger_reload_seconds = 2
 run_history_max_records = 10000
 run_history_max_age_days = 30
+run_history_max_bytes = 1073741824
 target_runtimes = []
 
 [display]
@@ -256,6 +287,16 @@ time_format = "24-hour"
 max_http_response_bytes = 10485760
 max_file_download_bytes = 104857600
 max_file_read_bytes = 10485760
+max_log_entry_bytes = 16384
+max_runtime_variable_bytes = 16777216
+max_run_log_bytes = 2097152
+max_retained_variable_bytes = 262144
+max_run_record_bytes = 8388608
+
+[security.policy]
+allow_shell_commands = true
+allow_dangerous_permissions = true
+allow_public_network_listeners = true
 
 [updates]
 automatic_checks = true
@@ -281,6 +322,7 @@ websockets_enabled = false
 bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
+max_connections = 128
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 
@@ -300,6 +342,7 @@ allow_unauthenticated_public_bind = false
 trigger_reload_seconds = 2
 run_history_max_records = 10000
 run_history_max_age_days = 30
+run_history_max_bytes = 1073741824
 target_runtimes = ["Linux Headless"]
 
 [display]
@@ -309,6 +352,16 @@ time_format = "24-hour"
 max_http_response_bytes = 10485760
 max_file_download_bytes = 104857600
 max_file_read_bytes = 10485760
+max_log_entry_bytes = 16384
+max_runtime_variable_bytes = 16777216
+max_run_log_bytes = 2097152
+max_retained_variable_bytes = 262144
+max_run_record_bytes = 8388608
+
+[security.policy]
+allow_shell_commands = false
+allow_dangerous_permissions = false
+allow_public_network_listeners = false
 
 [updates]
 automatic_checks = true
@@ -334,6 +387,7 @@ websockets_enabled = false
 bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
+max_connections = 128
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 

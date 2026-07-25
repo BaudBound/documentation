@@ -11,6 +11,8 @@ The editor describes what the package intends to do. The runner makes the final 
 
 Approval means that you accept the reviewed operations for one exact package revision. It does not mean the package came from a trusted author. It also does not allow invalid or unsupported behavior.
 
+BaudBound also uses an Official blacklist for reviewed security concerns involving repositories, publishers, domains, scripts, and exact package files. See [Official Blacklist and Personal Block List](official-blacklist.md) for the severity rules, privacy details, and repository controls.
+
 ## Threat model
 
 The security model is designed to limit these failures:

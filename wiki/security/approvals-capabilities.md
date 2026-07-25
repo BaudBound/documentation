@@ -76,7 +76,9 @@ The runner derives permissions from executable action types and variable scopes.
 
 Trigger nodes such as Manual, Schedule, File Watch, Hotkey, and Process Started can be permissionless while still declaring machine-checkable capabilities and requiring service prerequisites.
 
-File permissions depend on the configured path. A bounded relative path uses `file_read` or `file_write_limited`. An absolute path, a sensitive system location, or a path containing runtime variables requires `read_sensitive_file` or `write_any_file`. This makes path selection visible during approval instead of treating every file action as equally broad.
+File permissions depend on the configured path. A bounded relative path uses `file_read` or `file_write_limited`. It resolves inside `workspaces/SCRIPT_ID` under the runner home, giving each installed script its own limited workspace. Parent traversal and symbolic-link components that escape this directory are rejected.
+
+An absolute path, a sensitive system location, a path containing runtime variables, or another path whose location cannot be proved in advance requires `read_sensitive_file` or `write_any_file`. The same rule applies to read, write, append, copy, move, delete, download destinations, and File Watch. This makes arbitrary filesystem access visible during approval instead of treating every file action as equally broad.
 
 ## Capability reference
 
@@ -143,15 +145,17 @@ Use `--json` on supported inspection commands for automation. Do not parse decor
 
 ## Runner policy gates
 
-Security validation accepts policy flags for:
+The operator controls three independent switches under `[security.policy]`:
 
-- dangerous actions.
-- shell commands.
-- network-server triggers.
+| Setting | What `false` blocks |
+| --- | --- |
+| `allow_shell_commands` | Every `run_shell_command` action |
+| `allow_dangerous_permissions` | Every package that requires a Dangerous permission |
+| `allow_public_network_listeners` | Webhook and WebSocket triggers that bind beyond loopback |
 
-Shell commands have both dangerous-action and shell-specific gates. Webhook and WebSocket listeners have a network-server gate. A current approval allows the runner's intended approved execution path, but unsupported platforms, malformed configuration, package mismatches, missing secrets, and unavailable native adapters remain blocking conditions.
+Shell commands must pass both the shell-specific setting and the Dangerous-permission setting. A current approval does not bypass these checks. Policy is applied during inspection, import, approval, trigger registration, and execution. A blocked script reports the exact setting involved.
 
-Policy is defense in depth. It must not be used to make package declarations inaccurate.
+The defaults are `true` so an update does not silently disable packages that a user already reviewed. Set a switch to `false` when the machine does not need that behavior. Policy is defense in depth. It must not be used to make package declarations inaccurate, and a package or repository cannot change it.
 
 ## Operator review checklist
 

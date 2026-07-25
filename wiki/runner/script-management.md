@@ -167,6 +167,8 @@ Repository controls can:
 
 Removing a repository deletes its cached browser entries. It does not uninstall scripts that were installed from it. Those scripts remain installed, but their repository update source becomes unavailable.
 
+Repository Management also shows Official blacklist advisories and your Personal block list. A restricted repository stays visible in management even when its scripts are hidden from the browser. Read [Official Blacklist and Personal Block List](../security/official-blacklist.md) before removing an affected repository or reviewing a quarantined script.
+
 If a refresh fails, the last valid cached script list stays available and the repository shows its latest error. Invalid or incomplete data never replaces a valid cache.
 
 The background repository refresh updates the Browse Scripts catalog. It does not download script packages and it does not install anything. The **Automatic update checks** setting for an installed script is separate. That setting controls whether BaudBound checks the repository entry for that installed script and reports a newer version.

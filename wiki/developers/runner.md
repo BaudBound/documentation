@@ -5,6 +5,41 @@ tags: [developers, runner, rust]
 ---
 # Runner Development
 
+## Official blacklist administration
+
+The production runner reads active records from the PocketBase `blacklist` collection at `api.baudbound.app`.
+
+The collection uses these public fields:
+
+| Field | Purpose |
+| --- | --- |
+| `scope` | Selects repository, publisher, domain, script, or package matching |
+| `target` | Stores the normalized identity for the selected scope |
+| `subdomains` | Includes descendant hostnames for a domain entry |
+| `title` | Provides the short public advisory title |
+| `reason` | Explains the reviewed security concern |
+| `severity` | Selects low, medium, high, or critical enforcement |
+| `advisory_url` | Links to public supporting information |
+| `published_at` | Records when the advisory became public |
+| `active` | Publishes and applies the entry |
+
+The hidden `private_notes` field is for maintainers. The runner never requests it.
+
+PocketBase list and view rules must remain `active = true`. Create, update, and delete operations remain available only to PocketBase superusers. New records should stay inactive until the scope, normalized target, reason, severity, advisory, and publication time have been reviewed.
+
+Use a unique constraint for `scope, target` and an index for `active, scope`. Deactivate an entry instead of deleting it when possible. This preserves the PocketBase record ID used by runner security incidents.
+
+Before activating an entry:
+
+1. Confirm that the target matches the intended scope.
+2. Confirm that `subdomains` is enabled only for a domain entry.
+3. Confirm that a package target is the lowercase SHA256 of the exact package.
+4. Confirm that a publisher target uses a supported identity such as `github:account`.
+5. Publish an advisory page that explains the evidence and recovery steps.
+6. Test the intended severity against a local runner.
+
+The runner keeps its last complete valid snapshot when a refresh fails. Increasing severity takes effect on the next successful refresh. Lowering severity or deactivating an entry removes the active restriction but never enables a previously quarantined script.
+
 Keep `src/main.rs` in the runner repository limited to top-level parsing and dispatch. Commands live under `commands/`. Service options, runtime, status, webhooks, and trigger loading live under `service/`. Tauri commands bridge UI requests into shared application services rather than reimplementing CLI behavior.
 
 Crates define ownership boundaries. Avoid large crate-root implementation files and organize source into domain folders. Public APIs should expose validated types and narrow operations. Storage, policy, and native adapters remain replaceable behind explicit interfaces.

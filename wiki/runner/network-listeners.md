@@ -26,6 +26,7 @@ Defaults are intentionally local:
 bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
+max_connections = 128
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 
@@ -39,6 +40,10 @@ allow_unauthenticated_public_bind = false
 ```
 
 The corresponding trigger-family switches under `[triggers]` must also be enabled. Configuration changes require the running service to restart.
+
+The Webhook listener accepts at most `max_connections` simultaneous connections. Extra connections are rejected while the listener is full. A client has 10 seconds to finish sending HTTP headers and 30 seconds to finish the request body. Headers are limited to 32 KiB. These fixed deadlines stop idle or deliberately slow clients from holding the listener open forever. `max_body_bytes` still limits the completed body before a workflow can start.
+
+The WebSocket listener has its own connection and message limits. These runner limits protect local resources. They do not replace firewall rules, reverse proxy request limits, or rate limiting for a public service.
 
 > Changing a bind address to `0.0.0.0` can expose every registered route to other machines. BaudBound refuses a public bind when any registered trigger has token authentication disabled. The explicit unauthenticated override removes that protection and should remain off.
 {.is-warning}

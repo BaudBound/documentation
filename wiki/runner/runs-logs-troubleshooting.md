@@ -24,7 +24,7 @@ Secret plaintext is not intended to appear in logs or stored snapshots. If it do
 
 ## Run-history retention
 
-BaudBound bounds run history by both count and age. The default keeps at most 10,000 runs and removes records older than 30 days. Each run record contains its logs and final variable snapshot, so those historical details are removed together.
+BaudBound bounds run history by count, age, and total stored bytes. The default keeps at most 10,000 runs, removes records older than 30 days, and uses at most 1 GiB for run history. Each run record contains its logs and final variable snapshot, so those historical details are removed together.
 
 Configure the limits under `[runner]`:
 
@@ -32,9 +32,10 @@ Configure the limits under `[runner]`:
 [runner]
 run_history_max_records = 10000
 run_history_max_age_days = 30
+run_history_max_bytes = 1073741824
 ```
 
-Both values must be greater than zero. The runner applies both limits, so a record is removed when it exceeds either one. Lowering a limit prunes existing history as soon as the new configuration is applied. New runs are inserted and old runs are pruned in one SQLite transaction.
+All values must be greater than zero. The runner applies all three limits, so the oldest record is removed when count, age, or storage size reaches its limit. Lowering a limit prunes existing history as soon as the new configuration is applied. New runs are inserted and old runs are pruned in one SQLite transaction.
 
 Retention never deletes installed scripts, approvals, persistent variables, global variables, or encrypted secrets. Increase the limits before an investigation when you need a longer history window.
 
@@ -66,6 +67,24 @@ Use **Clear runs** on the Runs page to delete every completed run record stored 
 Use **Clear logs** on the Logs page when you want to remove stored messages but keep the run records. Run status, identifiers, completion times, and final variable values remain available. BaudBound asks for confirmation before clearing the messages. Running scripts can add new messages after the operation completes.
 
 The desktop receives active run changes directly from the Rust runner. A run does not need to remain active until the next refresh interval. Finished history is refreshed only after the runner has committed its terminal record to SQLite.
+
+## Endless runs and bounded output
+
+BaudBound supports workflows that intentionally run forever. There is no maximum run time and no fixed While or Repeat iteration budget.
+
+The runner keeps service controls responsive by bounding pending triggers for each script and checking cancellation between graph steps and during cancellable waits. Repeated triggers for a script that is already running enter a bounded queue. When that queue is full, the new trigger is rejected with a clear error instead of consuming memory without limit. Different scripts can still run concurrently.
+
+Logs and completed-run variables have separate size limits. When one run produces more retained output than allowed, BaudBound records one suppression or truncation notice and stops growing that stored section. This does not cancel an otherwise healthy endless run. A single active variable that exceeds its runtime size limit fails the operation because it could otherwise exhaust process memory.
+
+To stop an endless run in the desktop app, open **Runs**, find it under **Currently running**, and choose **Stop**. In the CLI, list active runs and use the documented stop command for its run ID. Cancellation is cooperative, so a native operation that cannot be interrupted must return before the run can finish stopping.
+
+## HTTP diagnostic privacy
+
+HTTP Request logs keep the method, destination scheme, host, port, path, query parameter names, response status, duration, safe headers, body byte counts, and SHA-256 body hashes. Query values and sensitive headers are replaced with `[REDACTED]`.
+
+For JSON and form bodies, common secret fields such as passwords, tokens, cookies, authorization values, API keys, and nested equivalents are redacted before a preview is stored. BaudBound then applies configured secret-value redaction. Control characters are escaped so `\r`, `\n`, tabs, and binary-looking data cannot alter the log layout. Unknown binary bodies are represented by metadata and a hash instead of raw bytes.
+
+Previews are bounded and include a truncation marker when content does not fit. These protections cannot recognize every piece of private business data. Do not place unnecessary personal or confidential content in logs, and inspect an export before sharing it.
 
 The shared clock setting changes human readable desktop and CLI timestamps between 12 hour and 24 hour notation. Change it in the desktop Config page or with `baudbound config set display.time-format`. It does not alter stored timestamps, log order, or CLI JSON values.
 

@@ -22,7 +22,7 @@ The workspace includes unit and integration tests for package parsing, security 
 
 Windows and Linux CI both run the workspace. Platform-gated tests prove only the implementation compiled for that runner. They do not make unsupported native behavior portable.
 
-### Rust dependency advisories
+### Rust dependency policy
 
 Install the exact scanner version used by CI:
 
@@ -30,16 +30,18 @@ Install the exact scanner version used by CI:
 cargo install cargo-deny --version 0.19.8 --locked
 ```
 
-Audit both supported release targets:
+Audit advisories, licenses, dependency bans, and sources for both supported release targets:
 
 ```text
-cargo deny --all-features --locked --target x86_64-pc-windows-msvc check advisories
-cargo deny --all-features --locked --target x86_64-unknown-linux-gnu check advisories
+cargo deny --all-features --locked --target x86_64-pc-windows-msvc check
+cargo deny --all-features --locked --target x86_64-unknown-linux-gnu check
 ```
 
-`deny.toml` owns advisory policy. Vulnerabilities and yanked versions fail the build. Direct workspace dependencies with unsoundness advisories fail as well. Do not add an ignored advisory without a written impact analysis, an owner, and a removal condition.
+`deny.toml` owns the complete policy. Vulnerabilities, yanked versions, unapproved licenses, wildcard dependencies, and unexpected package sources fail the build. Duplicate versions are visible as warnings so they can be reduced without blocking platform dependency stacks that currently require them.
 
-Runner CI repeats this check on pull requests, pushes, manual runs, and a daily schedule. The release workflow repeats it before packaging. The action is pinned to a complete commit SHA and evaluates the committed `Cargo.lock`.
+Do not add an exception without the crate, reason, owner, and review date. A security advisory exception also needs an impact analysis, a removal condition, and an expiry date. State whether the dependency is build-only or shipped in the runner. Never describe a build-only finding as runtime exposure.
+
+Runner CI repeats the complete check on pull requests, pushes, manual runs, and a daily schedule. The release workflow repeats it before packaging. The action is pinned to a complete commit SHA and evaluates the committed `Cargo.lock`.
 
 Dependabot opens weekly Cargo and GitHub Actions update pull requests from `.github/dependabot.yml`. Repository maintainers must also keep **Dependency graph**, **Dependabot alerts**, and **Dependabot security updates** enabled under GitHub **Settings > Code security**. The repository configuration file schedules updates but cannot enable those repository-level switches.
 
@@ -75,9 +77,12 @@ pnpm --dir ui install --frozen-lockfile
 pnpm --dir ui typecheck
 pnpm --dir ui test
 pnpm --dir ui build
+pnpm --dir ui audit --prod
 ```
 
 Vitest contracts cover view-model formatting and client behavior. Typecheck verifies Tauri payload assumptions on the TypeScript side. The production Vite build is also consumed by the Rust/Tauri bundle.
+
+The production audit runs in CI and the release quality gate. Dependabot monitors `/ui` separately from Cargo. A temporary advisory exception requires the same written owner, impact, removal condition, and expiry discipline used for Rust dependencies.
 
 ## Wiki and publisher
 
@@ -93,8 +98,8 @@ Publisher tests cover metadata, links, assets, navigation, GraphQL safety, owner
 
 | Workflow | Purpose |
 | --- | --- |
-| **Runner CI** | Windows and Linux Rust workspace, desktop UI gates, contract snapshots, and scheduled RustSec advisory checks |
-| **Runner Release** | Full quality and advisory gates, version verification, signed Windows/Linux packages, updater metadata, and draft release |
+| **Runner CI** | Windows and Linux Rust workspace, desktop UI gates, production dependency audit, contract snapshots, and scheduled Rust dependency policy checks |
+| **Runner Release** | Full quality and dependency policy gates, version verification, signed Windows/Linux packages, updater metadata, and draft release |
 | **Editor CI** | Validate the editor, its pinned contracts submodule, and its container image in `BaudBound/editor` |
 | **Contracts CI** | Validate JSON contracts and publish their static container image in `BaudBound/contracts` |
 | **Wiki Documentation** | Validate and reconcile repository pages and static navigation with Wiki.js |
