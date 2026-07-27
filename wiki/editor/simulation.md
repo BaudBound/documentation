@@ -58,8 +58,11 @@ Open **Simulation** in the inspector. Each trigger has a card containing fields 
 | **Stop** | Cancels the active run or waiting session |
 | **Simulation output** | Shows verification, trigger, node, branch, side-effect, and failure traces |
 | **Runtime data** | Shows current variable and node-output snapshots |
+| **Taken path** | Connections used by the simulation turn green as the workflow runs |
 
 Only one trigger executes at a time. Stop an active run before firing another. Editing the graph cancels and resets the previous simulation state.
+
+The green connections remain visible after the simulation finishes so you can inspect the complete path. Starting another trigger or editing the graph clears the previous path.
 
 Runtime variables reset to their package defaults before each simulated run. Persistent variables keep their latest simulated values for later runs in the current editor session. Changing a Variable Operation node from runtime scope to persistent scope makes later simulated writes use persistent state. Reloading the editor restores the saved package defaults because simulated persistent values are not exported.
 
