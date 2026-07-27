@@ -61,9 +61,13 @@ Reading paths use numeric dot segments such as `.0`. Bracket notation is reserve
 
 References retrieve data. They do not evaluate arithmetic or arbitrary expressions. Use Calculate for mathematics and Format Text for text transformations.
 
+Use Convert Value when an action returns the right content in the wrong type. For example, it can convert the text `42` to a number or JSON text to a list or object.
+
 ## Variable sources
 
 ### User variables
+
+The Variables tab shows both the plain variable name and its `{{reference}}`. Both values can be selected, and each has its own copy button.
 
 Variable Operation creates and changes named user variables. Names must start with a letter or underscore and may contain only letters, numbers, and underscores. The `manifest_` and `system_` prefixes are reserved.
 
@@ -229,7 +233,7 @@ Metadata is refreshed whenever the underlying runtime value changes. The `$` nam
 
 If/Else and While resolve both sides before comparing them. Keep a standalone reference when comparing numbers, booleans, null, lists, or objects. Combining a reference with text converts that side to a string.
 
-Available comparisons are equals, does not equal, numeric greater/less variants, contains, starts with, ends with, regex match, is empty, and is null. If/Else also provides **Is True** and **Is False** for strict boolean checks. The **is empty**, **is null**, **Is True**, and **Is False** checks inspect Value directly, so the editor hides the Target field. Text such as `"true"` is not a boolean and does not match **Is True**. Rows are combined in order with AND or OR, and each row can be inverted.
+Available comparisons include equality, numeric ordering, text matching, collection checks, and length checks. If/Else also provides strict boolean checks, value type checks, and variable presence checks. Checks that inspect Value directly hide the Target field. **Is defined** means the referenced variable exists, even when its value is null. **Is missing** means the reference does not exist. Text such as `"true"` is not a boolean and does not match **Is True**. Rows are combined in order with AND or OR, and each row can be inverted.
 
 Numeric comparisons require numeric operands. Regex patterns are limited to 256 characters. The runner rejects invalid patterns, and simulation treats patterns rejected by its safety checks as a non-match.
 
