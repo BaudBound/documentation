@@ -52,7 +52,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Schedule
 
 - **Action type:** `trigger.schedule`. Capability `trigger.schedule`. Low risk.
-- **Configuration:** **Every** positive number, default `5`. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resulting interval must be at least one millisecond.
+- **Configuration:** required **Every** positive number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resulting interval must be at least one millisecond.
 - **Output:** runner payload includes interval and due-time information. Graph continues through `out`.
 - **Use:** recurring work while a background service is active.
 - **Runtime:** unchanged registrations preserve due timing across reload. Missed intervals are counted without dispatching every missed occurrence. Millisecond schedules use operating-system timers and are not hard real-time guarantees.
@@ -79,7 +79,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### WebSocket
 
 - **Action type:** `trigger.websocket`. Capability `trigger.websocket`. Permission `websocket_public_bind`. High risk.
-- **Configuration:** required **Path** beginning with `/`, default `/events/messages`.
+- **Configuration:** required **Path** beginning with `/`, for example `/events/messages`.
 - **Outputs:** message text, path, `connection_id`, headers, query, and remote address.
 - **Use:** begin one run per inbound text message on a matched connection.
 - **Runtime:** requires enabled WebSocket listener and connection capacity. Use WebSocket Write with this run's connection ID.
@@ -88,7 +88,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Hotkey
 
 - **Action type:** `trigger.hotkey`. Capability `trigger.hotkey`. Medium risk. Windows Desktop only.
-- **Configuration:** captured **Key** expression, default `Ctrl+Alt+B`. A single key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
+- **Configuration:** required captured **Key** expression. A single key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
 - **Output:** canonical `key` expression and timestamp.
 - **Use:** start a script when the complete physical key chord is held while the Windows desktop background runner is active.
 - **Matching:** the held keys must match the configured chord exactly. The run starts when the final required key is pressed, regardless of the order in which the keys were pressed. Holding the chord does not repeatedly start runs.
@@ -98,7 +98,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Serial Input
 
 - **Action type:** `trigger.serial_input`. Capability `trigger.serial_input`. Permission `serial_input`. High risk.
-- **Configuration:** logical **Device id**, default `serial-device`. Lowercase letters, numbers, `_`, and `-` only.
+- **Configuration:** required logical **Device id**. Lowercase letters, numbers, `_`, and `-` only.
 - **Outputs:** `device_id`, received `data`, byte count, and runner `timestamp`.
 - **Use:** start when a runner-mapped serial device emits data.
 - **Runner framing:** the runner mapping decides whether a complete message ends after an idle gap, at a line ending, or at each raw operating system chunk. Multiple Serial Input nodes using the same logical ID share one native reader.
@@ -129,8 +129,11 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Action type:** `control.if`. Capability `runtime.if`. Low risk.
 - **Configuration:** one or more condition rows with a value, operator, optional inversion, and AND/OR combinator. Operators that compare two values also show a target.
 - **Flow:** named `true` and `false` outputs.
-- **Operators:** equality, ordering, contains, prefix/suffix, regex, empty, null, **Is True**, and **Is False** checks.
-- **Checks without a target:** **is empty**, **is null**, **Is True**, and **Is False** inspect Value directly, so the editor does not show a Target field for them. The boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
+- **Text operators:** equality, ordering, contains, does not contain, prefix, suffix, regular expression, and case insensitive equality or contains checks.
+- **Collection operators:** **has key** checks an object key. **contains item** checks a list item. Length operators compare string characters, list items, or object keys with Target.
+- **Type operators:** **Is numeric**, **Is text**, **Is boolean**, **Is list**, and **Is object** check the resolved value type. **Is numeric** also accepts text that contains only a valid finite number.
+- **Presence operators:** **Is defined** passes when a variable reference exists. Its value may still be null. **Is missing** passes when that variable reference does not exist.
+- **Checks without a target:** empty, null, boolean, type, and presence checks inspect Value directly, so the editor does not show a Target field for them. Boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
 - **Simulation/runtime:** values are resolved with their types before comparison. A numeric variable or calculated result matches an equivalent numeric literal, so calculated `1.0` equals the literal `1`. Two text values still require exactly the same text. Inversion applies to one row before combinators.
 - **Example:** `{{status_code}} >= 400` routes errors to `true`.
 
@@ -203,11 +206,12 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### Variable Operation
 
-- **Action type:** `runtime.set_variable`. Capabilities `runtime.variables` and, for stored scopes, `runtime.persistent_storage`.
+- **Action type:** `runtime.set_variable`. Capabilities `runtime.variables` and, for stored scopes, `runtime.persistent_storage`. Fallible.
 - **Configuration:** operation `set`, `increment`, `append_list`, `set_object_field`, or `clear`. Name. Scope `runtime`, `persistent`, or `global`. Value type. Operation-specific value and field path.
 - **Access:** runtime scope is low, persistent is medium, global is high.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
 - **Validation:** names use letters, numbers, and underscores, cannot start with a number, and cannot use reserved prefixes.
+- **Failure:** invalid values, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable.
 - **Simulation:** updates current simulation state. Runner persistence must be tested separately.
 
 ### Calculate
@@ -218,13 +222,23 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Use:** arithmetic supported by the runtime expression evaluator, not arbitrary code.
 - **Simulation:** evaluates with current values using the same supported expression rules.
 
+### Convert Value
+
+- **Action type:** `action.value.convert`. Capability `action.value`. Permission `value_conversion`. Low risk. Fallible.
+- **Configuration:** a variable-aware **Value** and a target type of text, number, integer, boolean, list, or object.
+- **Integer rules:** the value must already be a whole number within the safe integer range. Convert Value does not round decimal values.
+- **Boolean rules:** accepts a boolean value or the text `true` or `false` without regard to letter case.
+- **List and object rules:** accepts an existing value of the selected type or JSON text whose top-level value has the selected type.
+- **Output:** `value`, `source_type`, and `target_type` on success. Structured error details are available from `failed`.
+
 ### Text Transform
 
-- **Action type:** `action.text.format`. Capability `action.text`. Permission `text_transform`. Low risk.
-- **Configuration:** operation-specific fields for template, input, search, replacement, delimiter, items, start, length, padding, or target length.
+- **Action type:** `action.text.format`. Capability `action.text`. Permission `text_transform`. Low risk. Fallible.
+- **Configuration:** one initial input followed by an ordered list of operations. Drag operations to change their order.
 - **Operations:** template, trim, uppercase, lowercase, sentence case, capitalize words, literal/regex replace, split, join, substring, padding, URL/Base64 encode/decode, and JSON escape/unescape.
-- **Output:** transformed result data available from the node output.
-- **Failure:** invalid regex, encoding, indexes, or input shape produces validation/runtime error as applicable.
+- **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text.
+- **Output:** the final value is available as `text` or `items` according to its type.
+- **Failure:** invalid regex, encoding, indexes, or an incompatible value type continues through `failed`.
 
 ### Parse URL
 
@@ -245,15 +259,15 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### Delay
 
-- **Action type:** `action.delay`. Capability `action.delay`. Permission `delay`. Low risk.
+- **Action type:** `action.delay`. Capability `action.delay`. Permission `delay`. Low risk. Fallible.
 - **Configuration:** variable-aware positive **Amount** and unit milliseconds, seconds, minutes, hours, or days. The resolved duration must be at least one millisecond.
-- **Output:** none. Continues after the cancellable wait.
+- **Flow:** `success` continues after the cancellable wait. An invalid resolved duration continues through `failed` with structured error details. Cancelling a run stops execution instead of following `failed`.
 - **Simulation:** validates the resolved duration and records the simulated delay without blocking the UI thread.
 
 ### Beep
 
 - **Action type:** `action.beep`. Capability `action.sound`. Permission `beep`. Low risk. Desktop only. Fallible.
-- **Configuration:** variable-aware positive frequency Hz, default `800`. Duration ms, default `200`.
+- **Configuration:** required variable-aware positive frequency Hz and duration ms.
 - **Flow/data:** success or failed with structured error.
 - **Runtime:** plays a generated tone through the default desktop audio output.
 - **Simulation:** Web Audio sine tone clamped to safe editor bounds. Browsers may block audio before interaction.
