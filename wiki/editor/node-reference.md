@@ -196,11 +196,11 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### For Each
 
 - **Action type:** `control.for_each`. Capability `runtime.for_each`. Low risk.
-- **Configuration:** variable-aware **Items** resolving to a list. **Item variable** and **Index variable** names.
+- **Configuration:** variable-aware **Items** resolving to a list.
 - **Flow:** `loop` runs once per item. `done` follows completion.
-- **Data:** configured variables hold the current item and zero-based index.
+- **Data:** `{{node-id.item}}` holds the current item and `{{node-id.index}}` holds its zero-based index. Replace `node-id` with the ID shown in the node's Runtime Data section.
 - **Failure:** non-list input fails control-flow validation/execution.
-- **Example:** iterate `{{response.json.items}}` as `item` and `index`.
+- **Example:** for a node with ID `n-example`, read the active item with `{{n-example.item}}` and its position with `{{n-example.index}}`.
 
 ## Data and Output
 

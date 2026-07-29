@@ -119,7 +119,7 @@ Fallible actions expose structured `error` data when execution continues through
 
 ### For Each variables
 
-For Each writes the current item and zero-based index into the variable names configured on that node. These are runtime values and are replaced for each iteration. Choose names that do not collide with other writable variables in the loop body.
+For Each exposes the current item and zero-based index through its node runtime data. If the For Each node ID is `n-example`, use `{{n-example.item}}` for the current item and `{{n-example.index}}` for its position. These values update for every iteration.
 
 ### Manifest variables
 
