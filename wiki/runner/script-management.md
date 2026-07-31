@@ -53,6 +53,29 @@ Display names are not guaranteed unique. The manifest ID is stable and unambiguo
 
 **Verified** means package content matches its integrity information. **Not verified** means the package lacks valid integrity proof or its bytes no longer match. Re-export an unverified package from the current editor instead of modifying its archive.
 
+## Script Settings
+
+Script Settings let a script author declare normal configuration values such as an endpoint, retry count, display option, or list of labels. They are different from secrets because their package defaults and configured values are not treated as credentials.
+
+In the desktop Scripts view, choose **Configure Script Settings** on the script row. The same button is available in the script details dialog. Each field shows its declared type, package default, configured override, and effective value.
+
+The value control matches the declared type. Strings use a resizable text field. Numbers use a finite number field. Booleans use a selector. Objects use a JSON editor. Lists use ordered item rows and one declared item type. Date and time values show local time and are stored in RFC 3339 format. Durations use an amount and unit. File paths use a path text field.
+
+All items in a list must use the declared item type. Lists cannot directly contain other lists.
+
+The runner uses a configured override first. When no override exists, it uses the package default. A missing optional setting becomes `null`. A missing required setting blocks the script. When the affected script is enabled, it also blocks the background service until the value is configured or the script is disabled.
+
+Removing an override returns that field to its package default. Resetting all overrides does the same for every setting declared by the script.
+
+Script Settings are available inside a script through references such as:
+
+```text
+{{settings.Endpoint}}
+{{settings.RetryCount}}
+```
+
+Do not put passwords, tokens, private keys, or other credentials in Script Settings. Use [Secrets](secrets.md).
+
 ## Approve
 
 ```text

@@ -16,7 +16,7 @@ Do not manually edit or repack a `.bbs` file. Make changes in the editor and exp
 
 | Entry | Required | Purpose |
 | --- | --- | --- |
-| `manifest.json` | Yes | Script identity, package/language versions, author metadata, runner requirement, assets, and secret declarations |
+| `manifest.json` | Yes | Script identity, package and language versions, author metadata, runner requirement, assets, Script Settings, and secret declarations |
 | `program.json` | Yes | Executable nodes, edges, and entry trigger |
 | `permissions.json` | Yes | Declared permission list and highest risk level |
 | `capabilities.json` | Yes | Required capability list and target runtimes |
@@ -40,7 +40,12 @@ No other root files are accepted. Directory entries do not count as package docu
 | `created_with`, `created_at`, `updated_at` | Exporting editor and timestamps |
 | `minimum_runner_version` | Oldest runner version allowed to execute the package |
 | `assets` | Declared asset records with ID, kind, media type, name, path, and byte size |
+| `settings` | Script Setting declarations with name, type, optional list item type, description, required flag, and optional package default |
 | `secrets` | Name, description, and required flag. Every secret is text. Never a secret value |
+
+Script Setting types are `string`, `number`, `boolean`, `object`, `list`, `datetime`, `duration`, and `file_path`. A default value must match the declared type. A list declaration also includes `item_type`. Every list item must match that type and a list cannot directly contain another list. Runner overrides are stored outside the package. Editor simulation overrides belong to editor project data and are not exported into `manifest.json`.
+
+Default Variable declarations use the same value types and list rules. Secret declarations are always strings. Specialized runtime outputs such as HTTP responses are not user-created variable types.
 
 An update must keep the same `id`. A display name is not a stable update key and may not uniquely identify a script.
 
