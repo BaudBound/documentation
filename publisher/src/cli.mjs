@@ -25,7 +25,7 @@ try {
   const coverage = await validateDocumentationCoverage(repositoryRoot, pages, coveragePath);
   if (command === "validate") {
     console.log(
-      `Validated ${pages.length} Wiki.js pages, ${navigation.tree[0].items.length} navigation items, ${coverage.paths} repository surfaces, and ${coverage.pages} required documentation pages.`,
+      `Validated ${pages.length} Wiki.js pages, ${navigation.tree[0].items.length} navigation items, ${coverage.paths} repository paths, ${coverage.sourceChecks} source-derived product contracts, and ${coverage.pages} required documentation pages.`,
     );
   } else if (command === "publish") {
     const client = new WikiJsClient({

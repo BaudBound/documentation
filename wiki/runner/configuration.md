@@ -122,6 +122,7 @@ Approval and runner policy answer different questions. Approval means that you t
 | `security.policy.allow_shell_commands` | boolean. `true` | Allows approved packages to use shell command actions |
 | `security.policy.allow_dangerous_permissions` | boolean. `true` | Allows approved packages that require any Dangerous permission |
 | `security.policy.allow_public_network_listeners` | boolean. `true` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
+| `security.policy.allow_private_http_requests` | boolean. `false` | Allows HTTP Request actions to contact loopback, private, link-local, and other non-public destinations |
 
 Changing a value to `false` cannot grant access. It only blocks affected scripts. A blocked script cannot register triggers or run manually. The error identifies the setting that blocked it. Repositories and packages cannot change these values.
 
@@ -132,7 +133,10 @@ The defaults preserve the existing approval model. For a runner that only needs 
 allow_shell_commands = false
 allow_dangerous_permissions = false
 allow_public_network_listeners = false
+allow_private_http_requests = false
 ```
+
+Keep `allow_private_http_requests` disabled unless an approved workflow must call a service on the runner machine or private network. Enabling it affects outbound HTTP Request actions. It does not enable inbound Webhook or WebSocket listeners. The runner resolves destinations itself, bypasses proxy configuration, and rechecks redirects so a public URL cannot silently redirect to a blocked private destination.
 
 ## Trigger-family switches
 
@@ -297,6 +301,7 @@ max_run_record_bytes = 8388608
 allow_shell_commands = true
 allow_dangerous_permissions = true
 allow_public_network_listeners = true
+allow_private_http_requests = false
 
 [updates]
 automatic_checks = true
@@ -362,6 +367,7 @@ max_run_record_bytes = 8388608
 allow_shell_commands = false
 allow_dangerous_permissions = false
 allow_public_network_listeners = false
+allow_private_http_requests = false
 
 [updates]
 automatic_checks = true

@@ -25,7 +25,7 @@ test("validates source-derived node, desktop, CLI, config, and repository covera
 
   const result = await validateDocumentationCoverage(root, pages, manifestPath);
 
-  assert.deepEqual(result, { pages: 4, paths: 1 });
+  assert.deepEqual(result, { pages: 4, paths: 1, sourceChecks: 4 });
 });
 
 test("reports missing source-derived documentation", async (context) => {
@@ -74,6 +74,79 @@ test("rejects stale duplicate and unparseable desktop navigation contracts", asy
   await assert.rejects(
     validateDocumentationCoverage(root, documentationPages(), manifestPath),
     /does not contain any recognizable desktop navigation items[\s\S]*removed or unknown desktop tab dashboard/,
+  );
+});
+
+test("resolves product sources outside the documentation repository", async (context) => {
+  const root = await fixtureRoot(context);
+  await files(root, {
+    "product/nodes/example.ts": 'export const node = { actionType: "action.example" };',
+  });
+  const manifestPath = path.join(root, "coverage.json");
+  await writeFile(
+    manifestPath,
+    JSON.stringify({
+      requiredPages: ["nodes"],
+      requiredPaths: [],
+      sourceRoots: { editor: { default: "product" } },
+      nodes: {
+        sourceRoot: "editor",
+        sources: "nodes/*.ts",
+        page: "nodes",
+        expectedCount: 1,
+      },
+    }),
+    "utf8",
+  );
+
+  await validateDocumentationCoverage(
+    root,
+    [{ path: "nodes", content: "`action.example`" }],
+    manifestPath,
+  );
+});
+
+test("derives current security values from generated contracts and runtime additions", async (context) => {
+  const root = await fixtureRoot(context);
+  await files(root, {
+    "product/capabilities.json": JSON.stringify({ nodes: { example: ["action.example"] } }),
+    "product/permissions.json": JSON.stringify({
+      nodes: { example: { permission: { name: "example.read", risk: "medium" } } },
+    }),
+    "product/permissions.schema.json": JSON.stringify({
+      properties: { declared_permissions: { items: { enum: ["example.read", "example.write"] } } },
+    }),
+    "product/security.rs": 'let permission = "example.write"; let ignored = "not.a.permission";',
+  });
+  const manifestPath = path.join(root, "coverage.json");
+  await writeFile(
+    manifestPath,
+    JSON.stringify({
+      requiredPages: ["security"],
+      requiredPaths: [],
+      sourceRoots: { runner: { default: "product" } },
+      security: {
+        sourceRoot: "runner",
+        capabilitySource: "capabilities.json",
+        permissionSource: "permissions.json",
+        permissionSchemaSource: "permissions.schema.json",
+        permissionDynamicSource: "security.rs",
+        page: "security",
+      },
+    }),
+    "utf8",
+  );
+
+  await validateDocumentationCoverage(
+    root,
+    [
+      {
+        path: "security",
+        content:
+          "`action.example` `runtime.persistent_storage` `runtime.secrets` `example.read` `example.write`",
+      },
+    ],
+    manifestPath,
   );
 });
 
