@@ -59,7 +59,7 @@ Script Settings let a script author declare normal configuration values such as 
 
 In the desktop Scripts view, choose **Configure Script Settings** on the script row. The same button is available in the script details dialog. Each field shows its declared type, package default, configured override, and effective value.
 
-The value control matches the declared type. Strings use a resizable text field. Numbers use a finite number field. Booleans use a selector. Objects use a JSON editor. Lists use ordered item rows and one declared item type. Date and time values show local time and are stored in RFC 3339 format. Durations use an amount and unit. File paths use a path text field.
+The value control matches the declared type. Strings use a resizable text field. Numbers use a finite number field. Booleans use a selector. Objects use a JSON editor. Lists use ordered item rows and one declared item type. Date and time values show local time and are stored in RFC 3339 format. Durations use an amount and unit. File paths use a path text field. Hotkeys use a key-capture control and canonical Windows key names. Colors use the shared color picker and require `#RRGGBB`.
 
 All items in a list must use the declared item type. Lists cannot directly contain other lists.
 

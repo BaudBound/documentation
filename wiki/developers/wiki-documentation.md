@@ -188,7 +188,9 @@ pnpm --dir publisher test
 pnpm --dir publisher validate
 ```
 
-Validation checks metadata, page paths, internal links, HTTPS policy, assets, navigation completeness, required pages, and publisher safety contracts. Runner, editor, and shared contract repositories validate their own source-derived compatibility checks. It reports the source file and line for content errors where available.
+Validation checks metadata, page paths, internal links, HTTPS policy, assets, navigation completeness, required pages, and publisher safety contracts. It also reads the current editor node definitions and the runner desktop navigation, CLI, configuration, permission, and capability contracts. A changed source fingerprint or an undocumented product identifier fails validation. It reports the source file and line for content errors where available.
+
+Local source-derived validation expects sibling `editor` and `baudbound` repositories by default. Set `WIKI_EDITOR_SOURCE_ROOT` and `WIKI_RUNNER_SOURCE_ROOT` when the repositories are elsewhere. CI checks out the current `master` of both product repositories into isolated source directories before validation.
 
 Do not solve a coverage failure by deleting a source from the manifest. Add or correct the public documentation, or update the baseline only when a reviewed product surface was intentionally removed.
 
@@ -222,7 +224,7 @@ Never delete a page merely because it is short. First decide whether it should b
 
 ## CI and publication
 
-The Wiki Documentation workflow runs publisher tests and validation for pull requests that change wiki or publisher files. A push to `master` publishes when repository variable `WIKI_PUBLISH_ENABLED` is `true`.
+The Wiki Documentation workflow runs publisher tests and validation for every pull request and push. A weekly scheduled run checks for documentation drift against current product sources without publishing. A push to `master` publishes after validation succeeds. Manual dispatch can publish or perform a dry run through the protected environment.
 
 The `wiki-production` GitHub environment provides:
 
@@ -230,7 +232,6 @@ The `wiki-production` GitHub environment provides:
 | --- | --- |
 | `WIKI_URL` secret | HTTPS root URL for the Wiki.js instance |
 | `WIKI_API_TOKEN` secret | GraphQL access for page read/write/delete and navigation management |
-| `WIKI_PUBLISH_ENABLED` repository variable | Enables automatic production reconciliation after validation |
 
 Manual workflow dispatch supports dry runs, reviewed adoption of matching unmanaged pages, and an explicit mass-delete override.
 

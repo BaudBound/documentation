@@ -103,8 +103,8 @@ A one-script repository looks like this:
         "serial"
       ],
       "permissions": [
-        "serial_input",
-        "http_request"
+        "serial.input",
+        "http.request"
       ],
       "capabilities": [
         "trigger.serial_input",

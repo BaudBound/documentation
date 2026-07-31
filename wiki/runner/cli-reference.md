@@ -158,7 +158,12 @@ baudbound script settings set inventory StartTime '{"type":"datetime","value":"2
 baudbound script settings set inventory RetryDelay '{"type":"duration","unit":"seconds","value":10}'
 ```
 
-Strings and file paths are passed as normal text. Numbers must be finite. Booleans use `true` or `false`. Objects and lists use JSON. Every item in a list must match the item type declared by the package. Datetime and duration values use the JSON structures shown above.
+```text
+baudbound script settings set inventory Shortcut Ctrl+Shift+F8
+baudbound script settings set inventory AccentColor "#2F80ED"
+```
+
+Strings, file paths, hotkeys, and colors are passed as normal text. Hotkeys must use the canonical Windows key vocabulary declared by the package contract. Colors must use `#RRGGBB`. Numbers must be finite. Booleans use `true` or `false`. Objects and lists use JSON. Every item in a list must match the item type declared by the package. Datetime and duration values use the JSON structures shown above.
 
 ### Triggers and execution
 

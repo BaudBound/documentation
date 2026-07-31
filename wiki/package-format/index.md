@@ -43,9 +43,9 @@ No other root files are accepted. Directory entries do not count as package docu
 | `settings` | Script Setting declarations with name, type, optional list item type, description, required flag, and optional package default |
 | `secrets` | Name, description, and required flag. Every secret is text. Never a secret value |
 
-Script Setting types are `string`, `number`, `boolean`, `object`, `list`, `datetime`, `duration`, and `file_path`. A default value must match the declared type. A list declaration also includes `item_type`. Every list item must match that type and a list cannot directly contain another list. Runner overrides are stored outside the package. Editor simulation overrides belong to editor project data and are not exported into `manifest.json`.
+Script Setting types are `string`, `number`, `boolean`, `object`, `list`, `datetime`, `duration`, `file_path`, `hotkey`, and `color`. A `hotkey` is a canonical Windows key expression such as `Ctrl+Shift+F8`. A `color` is a seven-character `#RRGGBB` string. A default value must match the declared type. A list declaration also includes `item_type`. Every list item must match that type and a list cannot directly contain another list. Runner overrides are stored outside the package. Editor simulation overrides belong to editor project data and are not exported into `manifest.json`.
 
-Default Variable declarations use the same value types and list rules. Secret declarations are always strings. Specialized runtime outputs such as HTTP responses are not user-created variable types.
+Default Variable declarations use the first eight value types and the same list rules. They do not support the setting-only `hotkey` and `color` types. Secret declarations are always strings. Specialized runtime outputs such as HTTP responses are not user-created variable types.
 
 An update must keep the same `id`. A display name is not a stable update key and may not uniquely identify a script.
 

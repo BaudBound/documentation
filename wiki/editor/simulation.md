@@ -52,8 +52,8 @@ Open **Simulation** in the inspector. Each trigger has a card containing fields 
 
 | Control | Behavior |
 | --- | --- |
-| **Trigger button** | Verifies, starts the session, and fires that trigger payload |
-| **Speed** | Delays steps at Slow, Normal, Fast, or Instant pacing |
+| **Trigger button** | Runs every blocking verification check first. Only a passing project enters the active state and fires the trigger payload |
+| **Simulation pacing** | **Real time** adds no artificial pause. Slowdown options add `100`, `300`, or `700` milliseconds after every streamed step |
 | **Runtime override** | Forces a selected fallible node to succeed or fail for branch testing |
 | **Stop** | Cancels the active run or waiting session |
 | **Simulation output** | Shows verification, trigger, node, branch, side-effect, and failure traces |
@@ -61,6 +61,8 @@ Open **Simulation** in the inspector. Each trigger has a card containing fields 
 | **Taken path** | Connections used by the simulation turn green as the workflow runs |
 
 Only one trigger executes at a time. Stop an active run before firing another. Editing the graph cancels and resets the previous simulation state.
+
+Simulation executes and reports one node at a time. The active highlight, taken connection, output entry, and Runtime Data changes are published before the simulator advances to the next node. It does not execute the complete graph in the background and reveal buffered results afterward. Real time still waits for the simulated behavior of nodes such as Delay, schedules, browser HTTP requests, dialogs, and audio. The slowdown choices add review time on top of that behavior.
 
 The green connections remain visible after the simulation finishes so you can inspect the complete path. Starting another trigger or editing the graph clears the previous path.
 
@@ -92,6 +94,8 @@ Example webhook body:
 ```
 
 Use the trigger node's runtime output browser to insert its real ID into downstream references.
+
+Schedule simulation uses the configured interval instead of adding the callback duration to every cycle. If the browser runs a callback late, the next due time remains anchored to the original cadence. Browser and operating-system scheduling can still make a callback late, so simulation and the runner are not hard real-time systems.
 
 ## Secrets in simulation
 

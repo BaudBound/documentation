@@ -13,19 +13,44 @@ export async function validateDocumentationCoverage(repositoryRoot, pages, manif
   checkExternalHosts(manifest.approvedExternalHosts ?? [], pages, errors);
   await checkRequiredPaths(repositoryRoot, manifest.requiredPaths, errors);
   if (manifest.nodes) {
-    await checkNodeCoverage(repositoryRoot, manifest.nodes, pageByPath, errors);
+    await checkNodeCoverage(
+      sourceRoot(repositoryRoot, manifest, manifest.nodes),
+      manifest.nodes,
+      pageByPath,
+      errors,
+    );
   }
   if (manifest.desktop) {
-    await checkDesktopCoverage(repositoryRoot, manifest.desktop, pageByPath, errors);
+    await checkDesktopCoverage(
+      sourceRoot(repositoryRoot, manifest, manifest.desktop),
+      manifest.desktop,
+      pageByPath,
+      errors,
+    );
   }
   if (manifest.cli) {
-    await checkCliCoverage(repositoryRoot, manifest.cli, pageByPath, errors);
+    await checkCliCoverage(
+      sourceRoot(repositoryRoot, manifest, manifest.cli),
+      manifest.cli,
+      pageByPath,
+      errors,
+    );
   }
   if (manifest.configuration) {
-    await checkConfigCoverage(repositoryRoot, manifest.configuration, pageByPath, errors);
+    await checkConfigCoverage(
+      sourceRoot(repositoryRoot, manifest, manifest.configuration),
+      manifest.configuration,
+      pageByPath,
+      errors,
+    );
   }
   if (manifest.security) {
-    await checkSecurityCoverage(repositoryRoot, manifest.security, pageByPath, errors);
+    await checkSecurityCoverage(
+      sourceRoot(repositoryRoot, manifest, manifest.security),
+      manifest.security,
+      pageByPath,
+      errors,
+    );
   }
 
   if (errors.length > 0) {
@@ -35,7 +60,24 @@ export async function validateDocumentationCoverage(repositoryRoot, pages, manif
   return {
     pages: manifest.requiredPages.length,
     paths: manifest.requiredPaths.length,
+    sourceChecks: ["nodes", "desktop", "cli", "configuration", "security"].filter(
+      (name) => manifest[name],
+    ).length,
   };
+}
+
+function sourceRoot(repositoryRoot, manifest, definition) {
+  if (!definition.sourceRoot) return repositoryRoot;
+  const configured = manifest.sourceRoots?.[definition.sourceRoot];
+  if (!configured) throw new Error(`unknown documentation source root ${definition.sourceRoot}`);
+  const environmentValue = configured.environment
+    ? process.env[configured.environment]?.trim()
+    : undefined;
+  const relativePath = environmentValue || configured.default;
+  if (!relativePath) {
+    throw new Error(`documentation source root ${definition.sourceRoot} has no configured path`);
+  }
+  return path.resolve(repositoryRoot, relativePath);
 }
 
 function checkExternalHosts(approvedHosts, pages, errors) {
@@ -142,7 +184,9 @@ function desktopNavigationItems(source) {
 async function checkCliCoverage(repositoryRoot, definition, pageByPath, errors) {
   const source = await readFile(path.join(repositoryRoot, definition.source), "utf8");
   const content = requiredPageContent(definition.page, pageByPath, errors);
-  const enumNames = ["Command", "ConfigCommand", "ScriptCommand", "HotkeyCommand", "SecretCommand"];
+  const enumNames = [...source.matchAll(/^pub enum ([A-Za-z0-9]*Command)\s*\{/gm)].map(
+    (match) => match[1],
+  );
   const commands = [];
   for (const enumName of enumNames) {
     const body = rustEnumBody(source, enumName);
@@ -190,21 +234,30 @@ async function checkSecurityCoverage(repositoryRoot, definition, pageByPath, err
   const capabilityContract = JSON.parse(
     await readFile(path.join(repositoryRoot, definition.capabilitySource), "utf8"),
   );
-  const permissionSource = await readFile(
-    path.join(repositoryRoot, definition.permissionSource),
-    "utf8",
+  const permissionSource = JSON.parse(
+    await readFile(path.join(repositoryRoot, definition.permissionSource), "utf8"),
   );
   const content = requiredPageContent(definition.page, pageByPath, errors);
   const capabilities = new Set(Object.values(capabilityContract.nodes).flat());
   capabilities.add("runtime.persistent_storage");
   capabilities.add("runtime.secrets");
   const permissions = new Set(
-    [...permissionSource.matchAll(/=>\s*\("([a-z0-9_]+)",\s*RiskLevel::/g)].map(
-      (match) => match[1],
-    ),
+    Object.values(permissionSource.nodes)
+      .map((entry) => entry.permission?.name)
+      .filter(Boolean),
   );
-  for (const match of permissionSource.matchAll(/name:\s*"([a-z0-9_]+)"\.to_owned\(\)/g)) {
-    permissions.add(match[1]);
+  if (definition.permissionDynamicSource && definition.permissionSchemaSource) {
+    const dynamicSource = await readFile(
+      path.join(repositoryRoot, definition.permissionDynamicSource),
+      "utf8",
+    );
+    const permissionSchema = JSON.parse(
+      await readFile(path.join(repositoryRoot, definition.permissionSchemaSource), "utf8"),
+    );
+    const allowed = new Set(permissionSchema.properties.declared_permissions.items.enum);
+    for (const match of dynamicSource.matchAll(/"([a-z][a-z0-9]*(?:\.[a-z0-9_]+)+)"/g)) {
+      if (allowed.has(match[1])) permissions.add(match[1]);
+    }
   }
   for (const value of [...capabilities, ...permissions].sort()) {
     if (!content.includes(`\`${value}\``)) {

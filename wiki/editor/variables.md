@@ -122,7 +122,14 @@ Default values are ordinary package data. Anyone who receives the package can re
 
 Open **Settings**, then choose **Script Settings**. A Script Setting is a package declaration that a runner user can configure without changing the script graph.
 
-Each declaration contains a name, type, description, required option, optional package default, and optional simulation override. Script Settings use the same types and typed editors as Default Variables.
+Each declaration contains a name, type, description, required option, optional package default, and optional simulation override. Script Settings support every Default Variable type plus two setting-only types:
+
+| Setting-only type | Editor and validation |
+| --- | --- |
+| `hotkey` | Captures a canonical Windows key or chord such as `Ctrl+Shift+F8` |
+| `color` | Color picker and text field restricted to `#RRGGBB` |
+
+Use `hotkey` when a Hotkey trigger or Keyboard action should be configurable on each runner. Those node fields offer Literal key and Variable modes and list only compatible hotkey settings. Use `color` for configurable color comparisons. A color setting used in Color Match updates the field's color swatch after the variable resolves.
 
 Use the setting through the read only `settings` object:
 
@@ -202,7 +209,7 @@ Simulation values are entered explicitly in the Secrets panel, remain in memory 
 
 See [Secrets](../runner/secrets.md) for runner configuration and lifecycle commands.
 
-## Supported user-variable types
+## Default Variable and Variable Operation types
 
 | Type | Accepted value | Empty value after Clear |
 | --- | --- | --- |
@@ -227,7 +234,7 @@ New datetime values start with the current date and time. The timezone selector 
 { "type": "duration", "unit": "seconds", "value": 10 }
 ```
 
-Node outputs can use additional specialized types such as HTTP responses, file content, HTTP headers, status codes, process IDs, exit codes, and keyboard keys. These are runtime output types and cannot be selected for a Default Variable, Script Setting, or Variable Operation. The Runtime Data panel identifies the exact type produced by each node.
+Node outputs can use additional specialized types such as HTTP responses, file content, HTTP headers, status codes, process IDs, and exit codes. These runtime output types cannot be selected for a Default Variable, Script Setting, or Variable Operation. `hotkey` and `color` are Script Setting types only. They cannot be selected for Default Variables or Variable Operation. The Runtime Data panel identifies the exact type produced by each node.
 
 ## Variable operations
 

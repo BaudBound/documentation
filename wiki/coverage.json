@@ -17,6 +17,70 @@
                                   "wiki.gentoo.org",
                                   "www.freedesktop.org"
                               ],
+    "sourceRoots": {
+        "editor": {
+            "environment": "WIKI_EDITOR_SOURCE_ROOT",
+            "default": "../editor"
+        },
+        "runner": {
+            "environment": "WIKI_RUNNER_SOURCE_ROOT",
+            "default": "../baudbound"
+        }
+    },
+    "nodes": {
+        "sourceRoot": "editor",
+        "sources": "data/nodes/definitions/**/*.ts",
+        "page": "editor/node-reference",
+        "expectedCount": 53,
+        "sourceFingerprint": "e357329e8b62a2eb2311b0bae9ea942c1d9ba500414327edd4974f82b8e7bd00"
+    },
+    "desktop": {
+        "sourceRoot": "runner",
+        "source": "ui/src/lib/navigation.ts",
+        "page": "runner/desktop-app"
+    },
+    "cli": {
+        "sourceRoot": "runner",
+        "source": "src/cli.rs",
+        "page": "runner/cli-reference"
+    },
+    "configuration": {
+        "sourceRoot": "runner",
+        "source": "crates/baudbound-core/src/config.rs",
+        "page": "runner/configuration",
+        "structs": [
+            "DisplaySettings",
+            "LimitSettings",
+            "SecurityPolicySettings",
+            "UpdateSettings",
+            "DesktopSettings",
+            "SerialDeviceSettings",
+            "RunnerSettings",
+            "TriggerSettings",
+            "WebhookSettings",
+            "WebSocketSettings"
+        ],
+        "sections": {
+            "display": "DisplaySettings",
+            "limits": "LimitSettings",
+            "security.policy": "SecurityPolicySettings",
+            "updates": "UpdateSettings",
+            "desktop": "DesktopSettings",
+            "serial.devices.*": "SerialDeviceSettings",
+            "runner": "RunnerSettings",
+            "triggers": "TriggerSettings",
+            "webhooks": "WebhookSettings",
+            "websockets": "WebSocketSettings"
+        }
+    },
+    "security": {
+        "sourceRoot": "runner",
+        "capabilitySource": "contracts/runner/node-capabilities.json",
+        "permissionSource": "contracts/runner/node-permissions.json",
+        "permissionSchemaSource": "contracts/permissions.schema.json",
+        "permissionDynamicSource": "crates/baudbound-security/src/lib.rs",
+        "page": "security/approvals-capabilities"
+    },
     "requiredPages":  [
                           "home",
                           "getting-started",

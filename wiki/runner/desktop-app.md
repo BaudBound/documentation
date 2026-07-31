@@ -17,6 +17,7 @@ The interface refreshes automatically while it is open and when the window regai
 | Tab           | Use it for                                                                                                  |
 | ------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Dashboard** | Overall health, counts, review queue, and recent activity                                                   |
+| **Browse Scripts** | Discovering scripts from enabled official and user-managed repositories                              |
 | **Scripts**   | Importing, updating, approving, enabling, running, and removing scripts                                     |
 | **Service**   | Controlling the desktop-owned background runner and inspecting listeners                                    |
 | **Security**  | Approval, risk, permissions, package integrity, secrets, and network trigger tokens                         |
@@ -38,6 +39,14 @@ The summary tiles count installed and enabled scripts, trigger registrations, an
 The **Review queue** highlights scripts with package, approval, secret, compatibility, or health problems. Review the actual issue in Scripts or Security rather than approving solely to clear the count.
 
 **Recent activity** links the latest run records to their script and result. Use Runs for full details.
+
+## Browse Scripts
+
+<!-- desktop-tab:browse -->
+
+Browse Scripts refreshes enabled repositories and lists packages that passed repository and package validation. Search or filter the available entries, inspect their source and version, then install a selected package into the local runner. Repository packages are still unapproved after installation. Review and approve the installed revision from Scripts or Security before it can run.
+
+Use [Publishing Script Repositories](../editor/publishing-script-repositories.md) for repository format, trust boundaries, update checks, and self-hosted repository requirements.
 
 ## Scripts
 

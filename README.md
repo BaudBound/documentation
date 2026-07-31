@@ -4,8 +4,8 @@ This repository contains the source for the public BaudBound documentation at
 [wiki.baudbound.app](https://wiki.baudbound.app).
 
 Wiki pages live in `wiki/`. The standalone publisher in `publisher/` validates
-page metadata, links, assets, navigation, and required coverage before it
-reconciles managed pages with Wiki.js.
+page metadata, links, assets, navigation, required coverage, and source-derived
+editor and runner contracts before it reconciles managed pages with Wiki.js.
 
 ## Validate locally
 
@@ -14,6 +14,10 @@ pnpm --dir publisher install --frozen-lockfile
 pnpm --dir publisher test
 pnpm --dir publisher validate
 ```
+
+Source-derived local validation expects the `editor` and `baudbound`
+repositories beside this repository. Set `WIKI_EDITOR_SOURCE_ROOT` and
+`WIKI_RUNNER_SOURCE_ROOT` when using a different workspace layout.
 
 Publishing is handled by the `Wiki Documentation` GitHub Actions workflow.
 Production publishing requires the `wiki-production` environment and its
