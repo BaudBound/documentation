@@ -127,13 +127,14 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### If / Else
 
 - **Action type:** `control.if`. Capability `runtime.if`. Low risk.
-- **Configuration:** one or more condition rows with a value, operator, optional inversion, and AND/OR combinator. Operators that compare two values also show a target.
+- **Configuration:** one or more condition rows with a value, operator, optional inversion, and AND/OR combinator. Most comparisons show one target. **Is between** shows an inclusive start value and end value.
 - **Flow:** named `true` and `false` outputs.
-- **Text operators:** equality, ordering, contains, does not contain, prefix, suffix, regular expression, and case insensitive equality or contains checks.
-- **Collection operators:** **has key** checks an object key. **contains item** checks a list item. Length operators compare string characters, list items, or object keys with Target.
-- **Type operators:** **Is numeric**, **Is text**, **Is boolean**, **Is list**, and **Is object** check the resolved value type. **Is numeric** also accepts text that contains only a valid finite number.
-- **Presence operators:** **Is defined** passes when a variable reference exists. Its value may still be null. **Is missing** passes when that variable reference does not exist.
-- **Checks without a target:** empty, null, boolean, type, and presence checks inspect Value directly, so the editor does not show a Target field for them. Boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
+- **Text operators:** equality, ordering, contains, prefix, suffix, regular expression, and case insensitive equality or contains checks.
+- **Number range:** **Is between** passes when Value is equal to the start value, equal to the end value, or anywhere between them. The start must be less than or equal to the end.
+- **Collection operators:** **has key** checks an object key. **contains item** checks a list item.
+- **Type operators:** **Is numeric**, **Is string**, **Is boolean**, **Is list**, and **Is object** check the resolved value type. **Is numeric** also accepts text that contains only a valid finite number.
+- **Presence operator:** **Is null or missing** passes when a standalone variable reference has a null value or does not exist.
+- **Checks without a target:** empty, null or missing, boolean, and type checks inspect Value directly, so the editor does not show a Target field for them. Boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
 - **Simulation/runtime:** values are resolved with their types before comparison. A numeric variable or calculated result matches an equivalent numeric literal, so calculated `1.0` equals the literal `1`. Two text values still require exactly the same text. Inversion applies to one row before combinators.
 - **Example:** `{{status_code}} >= 400` routes errors to `true`.
 
@@ -207,11 +208,13 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Variable Operation
 
 - **Action type:** `runtime.set_variable`. Capabilities `runtime.variables` and, for stored scopes, `runtime.persistent_storage`. Fallible.
-- **Configuration:** operation `set`, `increment`, `append_list`, `set_object_field`, or `clear`. Name. Scope `runtime`, `persistent`, or `global`. Value type. Operation-specific value and field path.
+- **Configuration:** operation `set`, `increment`, `toggle_boolean`, `append_list`, `remove_list_items`, `set_object_field`, `remove_object_field`, `merge_object`, `clear`, or `delete`. Name. Scope `runtime`, `persistent`, or `global`. Set also declares a value type, and Set list declares one item type. Other operations use operation-specific values, removal modes, and field paths. Object field writes declare the field value type.
+- **Clear and Delete:** require a variable name and scope. Neither requires a variable type or value. Clear derives the empty value from the existing variable and fails if it does not exist.
+- **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
 - **Access:** runtime scope is low, persistent is medium, global is high.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
 - **Validation:** names use letters, numbers, and underscores, cannot start with a number, and cannot use reserved prefixes.
-- **Failure:** invalid values, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable.
+- **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
 - **Simulation:** updates current simulation state. Runner persistence must be tested separately.
 
 ### Calculate

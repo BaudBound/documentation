@@ -127,6 +127,39 @@ An installed script can normally be identified by its manifest ID or installed n
 
 Updating package content invalidates its previous approval.
 
+### Script Settings
+
+| Command | Behavior |
+| --- | --- |
+| `baudbound script settings list SCRIPT [--json]` | Lists declarations, package defaults, configured overrides, and effective values. |
+| `baudbound script settings set SCRIPT NAME VALUE` | Sets one runner override. Structured values use JSON as described below. |
+| `baudbound script settings unset SCRIPT NAME` | Removes one override and returns to the package default. |
+| `baudbound script settings reset SCRIPT` | Removes every configured override for one script. |
+
+Quote values that contain spaces so the shell passes the complete value as one argument.
+
+```powershell
+baudbound script settings set inventory Endpoint "https://inventory.example.test"
+```
+
+```text
+baudbound script settings set inventory RetryCount 3
+```
+
+```text
+baudbound script settings set inventory Labels '["warehouse","priority"]'
+```
+
+```text
+baudbound script settings set inventory StartTime '{"type":"datetime","value":"2026-07-29T12:00:00Z"}'
+```
+
+```text
+baudbound script settings set inventory RetryDelay '{"type":"duration","unit":"seconds","value":10}'
+```
+
+Strings and file paths are passed as normal text. Numbers must be finite. Booleans use `true` or `false`. Objects and lists use JSON. Every item in a list must match the item type declared by the package. Datetime and duration values use the JSON structures shown above.
+
 ### Triggers and execution
 
 ```text
