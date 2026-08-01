@@ -66,7 +66,7 @@ pnpm e2e
 
 `schemas:check` regenerates node and program contracts in memory and fails when committed schemas or the Rust capability contract are stale. Editor contract tests cover package writing, schemas, verification, simulation, variables, runtime compatibility, and related serialization behavior.
 
-Playwright exercises the built UI and should be used for interaction, responsive layout, canvas, modal, keyboard, and export changes.
+Playwright exercises the built production UI in Chromium and Firefox on every editor pull request and protected-branch update. CI limits browser concurrency to keep IndexedDB, reload, and multi-tab workflows deterministic on hosted runners.
 
 ## Desktop UI
 
@@ -100,7 +100,7 @@ Publisher tests cover metadata, links, assets, navigation, GraphQL safety, owner
 | --- | --- |
 | **Runner CI** | Windows and Linux Rust workspace, desktop UI gates, production dependency audit, contract snapshots, and scheduled Rust dependency policy checks |
 | **Runner Release** | Full quality and dependency policy gates, version verification, signed Windows/Linux packages, updater metadata, and draft release |
-| **Editor CI** | Validate the editor, its pinned contracts submodule, and its container image in `BaudBound/editor` |
+| **Editor CI** | Audit production dependencies, validate the editor and pinned contracts, run Chromium and Firefox workflows, and build the container image in `BaudBound/editor` |
 | **Contracts CI** | Validate JSON contracts and publish their static container image in `BaudBound/contracts` |
 | **Wiki Documentation** | Validate and reconcile repository pages and static navigation with Wiki.js |
 
@@ -112,7 +112,7 @@ The editor produces the package language consumed by Rust. The editor and runner
 
 | Change | Minimum required gates |
 | --- | --- |
-| Editor UI only | editor lint, typecheck, tests, build. Playwright for interaction/layout |
+| Editor UI only | editor production audit, lint, typecheck, tests, build, and Chromium/Firefox Playwright |
 | Node definition | editor schemas, tests, typecheck, build. Rust security/runtime tests. Documentation coverage |
 | Package or schema contract | editor schema and package tests. Full Rust workspace. Schema image |
 | Rust crate | fmt, clippy, affected tests, then workspace tests |
