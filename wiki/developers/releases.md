@@ -24,7 +24,7 @@ It can check versions and prerequisites, run verification, create the tag, inspe
 1. Verify a clean `master` worktree and synchronized version metadata.
 2. Run Rust, editor contract/schema, and desktop UI release gates.
 3. Create and push `vMAJOR.MINOR.PATCH`.
-4. GitHub repeats the quality gate on Ubuntu.
+4. GitHub verifies that the version tag is annotated and points to a commit contained in protected `master`, then repeats the quality gate on Ubuntu.
 5. Windows builds the NSIS installer. Ubuntu 22.04 builds the AppImage, Debian package, and RPM package from the same revision.
 6. Tauri signs updater artifacts and uploads platform signatures.
 7. The workflow creates a **draft** GitHub release and generates `latest.json`.

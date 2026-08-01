@@ -96,7 +96,7 @@ Open PowerShell and run:
 irm https://get.baudbound.app/windows | iex
 ```
 
-The script downloads the current Windows installer from the official BaudBound GitHub release and verifies it before opening the normal setup window. Quit BaudBound before running the command when you are updating an existing installation.
+The script downloads the current Windows installer from the official BaudBound GitHub release and verifies it before opening the normal setup window. It stops instead of downgrading a newer installed version. Quit BaudBound before running the command when you are updating an existing installation.
 
 #### Linux
 
