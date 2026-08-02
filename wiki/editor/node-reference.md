@@ -79,10 +79,10 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### WebSocket
 
 - **Action type:** `trigger.websocket`. Capability `trigger.websocket`. Permission `network.websocket`. High risk.
-- **Configuration:** required **Path** beginning with `/`, for example `/events/messages`.
+- **Configuration:** required **Path**, for example `events/messages`. The editor displays the leading `/` and stores the normalized path as `/events/messages`, so you do not need to type the slash.
 - **Outputs:** message text, path, `connection_id`, headers, query, and remote address.
 - **Use:** begin one run per inbound text message on a matched connection.
-- **Runtime:** requires enabled WebSocket listener and connection capacity. Use WebSocket Write with this run's connection ID.
+- **Runtime:** requires enabled WebSocket listener and connection capacity. Use WebSocket Write and select this trigger as its connection source.
 - **Simulation:** supplies a synthetic connection when one is not entered.
 
 ### Hotkey
@@ -322,9 +322,10 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### WebSocket Write
 
 - **Action type:** `action.websocket.write`. Capability `action.websocket`. Permission `websocket.write`. Medium risk. Fallible.
-- **Configuration:** variable-aware **Connection id** and **Message**.
+- **Configuration:** select the **Connection** from an available WebSocket Trigger and enter a variable-aware **Message**. The editor stores the selected trigger's `connection_id` reference.
 - **Outputs:** send result/byte information or connection error.
-- **Use:** reply to the connection ID emitted by the WebSocket trigger for the current run.
+- **Use:** reply through the connection emitted by the selected WebSocket Trigger for the current run.
+- **Graph rule:** the selected WebSocket Trigger must still exist and must be able to reach the WebSocket Write node through the graph.
 - **Failure:** unknown, stale, or disconnected IDs are rejected.
 
 ### Serial Write
