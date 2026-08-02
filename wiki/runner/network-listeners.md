@@ -134,7 +134,7 @@ $token = "PASTE_TOKEN_HERE"
 Invoke-WebRequest `
   -Method Post `
   -Uri "http://127.0.0.1:43891/events/tutorial" `
-  -Headers @{ "X-BaudBound-Token" = $token } `
+  -Headers @{ Authorization = "Bearer $token" } `
   -ContentType "application/json" `
   -Body '{ "message": "hello" }'
 ```
@@ -145,7 +145,7 @@ Invoke-WebRequest `
 TOKEN='PASTE_TOKEN_HERE'
 curl --fail-with-body \
   --request POST \
-  --header "X-BaudBound-Token: $TOKEN" \
+  --header "Authorization: Bearer $TOKEN" \
   --header 'Content-Type: application/json' \
   --data '{ "message": "hello" }' \
   http://127.0.0.1:43891/events/tutorial
@@ -354,7 +354,7 @@ After completing a proxy tab, test the public routes:
 ```text
 curl --fail-with-body \
   --request POST \
-  --header 'X-BaudBound-Token: PASTE_TOKEN_HERE' \
+  --header 'Authorization: Bearer PASTE_TOKEN_HERE' \
   --header 'Content-Type: application/json' \
   --data '{"message":"hello"}' \
   https://hooks.example.com/events/tutorial
@@ -371,7 +371,7 @@ Before exposing either listener, confirm every client uses its assigned trigger 
 | --- | --- | --- |
 | Connection refused | Listener stopped, disabled, wrong address, or wrong port | Service, Doctor, Config, and port ownership |
 | `404` webhook response | No route matches method and hook name | Script enabled/approved, exact method, `/events/` path |
-| `401` webhook response | Trigger token is missing | Send `X-BaudBound-Token` with the current token |
+| `401` webhook response | Bearer authorization is missing or malformed | Send `Authorization: Bearer TOKEN` with the current token |
 | `403` webhook response | Token is invalid or browser origin is not allowed | Rotate/check token and exact `allow_browser_origins` entry |
 | `413` or oversized error | Request exceeds configured body limit | `max_body_bytes` and proxy body limit |
 | `503` response | Executor unavailable, reloading, or at capacity | Service state and run concurrency logs |

@@ -100,7 +100,7 @@ $token = "PASTE_TOKEN_HERE"
 Invoke-RestMethod `
   -Method Post `
   -Uri "http://127.0.0.1:43891/events/tutorial" `
-  -Headers @{ "X-BaudBound-Token" = $token } `
+  -Headers @{ Authorization = "Bearer $token" } `
   -ContentType "application/json" `
   -Body '{ "message": "hello" }'
 ```
@@ -111,7 +111,7 @@ Invoke-RestMethod `
 TOKEN='PASTE_TOKEN_HERE'
 curl --fail-with-body \
   --request POST \
-  --header "X-BaudBound-Token: $TOKEN" \
+  --header "Authorization: Bearer $TOKEN" \
   --header 'Content-Type: application/json' \
   --data '{ "message": "hello" }' \
   http://127.0.0.1:43891/events/tutorial

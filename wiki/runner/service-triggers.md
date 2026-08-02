@@ -118,7 +118,7 @@ Use [Configuration and Serial Devices](configuration.md) for hardware setup.
 
 - **Prerequisite:** `webhooks_enabled = true`. Configured bind/port available. Network-server policy and approval allow registration. Runner-owned token authentication is enabled by default.
 - **Registration:** exact method plus `/events/HOOK_NAME` route.
-- **Authentication:** client sends the current token in `X-BaudBound-Token`. BaudBound removes this header before exposing request headers to the graph.
+- **Authentication:** client sends the current token as `Authorization: Bearer TOKEN`. BaudBound removes this header before exposing request headers to the graph.
 - **Payload:** method, path, headers, query, body, parsed JSON, and response state.
 - **Response:** immediate fallback or one reachable Webhook Response node with timeout fallback.
 - **Failure:** missing or invalid token, blocked browser origin, port conflict, duplicate route, body limit, executor capacity, timeout, or response-node failure.
