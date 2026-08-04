@@ -139,21 +139,21 @@ Approval and runner policy answer different questions. Approval means that you t
 
 | Key | Type/default | Meaning |
 | --- | --- | --- |
-| `security.policy.allow_shell_commands` | boolean. `true` | Allows approved packages to use shell command actions |
-| `security.policy.allow_dangerous_permissions` | boolean. `true` | Allows approved packages that require any Dangerous permission |
-| `security.policy.allow_public_network_listeners` | boolean. `true` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
+| `security.policy.allow_shell_commands` | boolean. `false` | Allows approved packages to use shell command actions |
+| `security.policy.allow_dangerous_permissions` | boolean. `false` | Allows approved packages that require any Dangerous permission |
+| `security.policy.allow_public_network_listeners` | boolean. `false` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
 | `security.policy.allow_private_http_requests` | boolean. `false` | Allows HTTP Request actions to contact loopback, private, link-local, and other non-public destinations |
 
 Changing a value to `false` cannot grant access. It only blocks affected scripts. A blocked script cannot register triggers or run manually. The error identifies the setting that blocked it. Repositories and packages cannot change these values.
 
-The defaults preserve the existing approval model. For a runner that only needs ordinary local automation, a stricter starting point is:
+Every capability starts disabled. Approving a package is not enough on its own. If a script needs one of these capabilities, the matching setting must also be `true`, so a new runner cannot run a shell command or bind a public listener until you decide it may.
+
+You will meet this the first time you approve a script that needs one. The script is blocked and the error names the setting to change. Set that one setting to `true` and run the script again. Turn on only what a script you trust actually needs, and leave the rest disabled.
 
 ```toml
 [security.policy]
-allow_shell_commands = false
-allow_dangerous_permissions = false
-allow_public_network_listeners = false
-allow_private_http_requests = false
+# Enable only the capabilities your approved scripts require.
+allow_shell_commands = true
 ```
 
 Keep `allow_private_http_requests` disabled unless an approved workflow must call a service on the runner machine or private network. Enabling it affects outbound HTTP Request actions. It does not enable inbound Webhook or WebSocket listeners. The runner resolves destinations itself, bypasses proxy configuration, and rechecks redirects so a public URL cannot silently redirect to a blocked private destination.
@@ -343,9 +343,9 @@ max_retained_variable_bytes = 262144
 max_run_record_bytes = 8388608
 
 [security.policy]
-allow_shell_commands = true
-allow_dangerous_permissions = true
-allow_public_network_listeners = true
+allow_shell_commands = false
+allow_dangerous_permissions = false
+allow_public_network_listeners = false
 allow_private_http_requests = false
 
 [updates]

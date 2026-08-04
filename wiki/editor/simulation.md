@@ -106,6 +106,10 @@ Entered values are type-checked, supplied to simulation, redacted from simulatio
 HTTP Request simulation defaults to **Mock**, which performs no network request and does not resolve secret-bearing request fields. **Live** mode identifies the literal destination origins before interpolation and requires explicit authorization for those origins for the current simulation run. Authorization is not stored for later runs. A live request can transmit entered values to an authorized origin, so use test credentials unless real access is deliberate.
 {.is-warning}
 
+A live request is sent by your browser. The editor has no server component and never makes requests for you, so the request comes from your own machine and address rather than from the editor website.
+
+That has one consequence worth knowing before you rely on live mode. Your browser only allows a cross-origin request when the destination permits it through CORS. A destination that does not send those headers fails in live mode even though the same request succeeds in the runner, because the runner has no such restriction. Use Mock mode for those destinations and test them on a runner instead.
+
 ## Side effects and fidelity
 
 The browser performs a small controlled set of visible simulation effects:

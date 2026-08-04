@@ -314,7 +314,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### Play Sound
 
-- **Action type:** `action.sound.play`. Capability `action.sound`. Permission `sound.play`. Medium risk. Desktop only. Fallible.
+- **Action type:** `action.sound.play`. Capability `action.sound`. Permission `sound.play` for package audio. A filesystem source also declares `file.read` for a bounded relative path or `file.read.any` for an unbounded path. Medium or Dangerous risk. Desktop only. Fallible.
 - **Configuration:** source package asset or file path and corresponding selected path.
 - **Output:** played source/path information and failure data.
 - **Simulation:** plays package audio in the browser. A runner filesystem path cannot be tested there.

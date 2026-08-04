@@ -57,7 +57,7 @@ The runner derives permissions from executable action types and variable scopes.
 | `process.observe` | Medium | Observe process-start metadata for a configured Process Started trigger |
 | `screen.pixel.read` | Medium | Read a screen pixel on supported desktops |
 | `serial.write` | Medium | Send data to a configured serial device |
-| `sound.play` | Medium | Play package or filesystem audio |
+| `sound.play` | Medium | Play audio bundled in the package |
 | `variable.persistent.set` | Medium | Store script data between runs |
 | `websocket.write` | Medium | Write to a connection associated with a WebSocket run |
 | `window.query` | Medium | Read active-window information |
@@ -88,6 +88,10 @@ The editor resolves statically knowable trigger inputs before deriving these per
 File permissions depend on the configured path. A bounded relative path uses `file.read`, `file.write.limited`, or `file.delete.limited`. It resolves inside `workspaces/SCRIPT_ID` under the runner home, giving each installed script its own limited workspace. Parent traversal and symbolic-link components that escape this directory are rejected.
 
 An absolute path, a sensitive system location, a path containing runtime variables, or another path whose location cannot be proved in advance requires `file.read.any`, `file.write.any`, or `file.delete.any` according to the operation. Copy and Move also declare `file.copy` or `file.move`. Download declares `file.download`. These permissions do not prevent an approved script from using the selected path. They make the broader access explicit during review.
+
+Play Sound follows the same rules when its source is a filesystem path. Audio bundled in the package needs only `sound.play`. Reading audio from the filesystem is a file read, so a bounded relative path also declares `file.read` and an absolute path also declares `file.read.any` at Dangerous risk.
+
+Windows adds three forms that cannot stay inside the workspace, so they are treated as unbounded on every platform. A drive-relative path such as `C:report.txt` resolves against that drive's current directory. An alternate data stream such as `notes.txt:hidden` writes to a hidden stream of another file. A reserved device name such as `CON` or `COM1` resolves to a device wherever it appears. A package built on Linux can be installed on Windows, so these classify the same way on both.
 
 ## Capability reference
 
@@ -165,7 +169,9 @@ The operator controls four independent switches under `[security.policy]`:
 
 Shell commands must pass both the shell-specific setting and the Dangerous-permission setting. A current approval does not bypass these checks. Policy is applied during inspection, import, approval, trigger registration, and execution. A blocked script reports the exact setting involved.
 
-The first three settings default to `true` so an update does not silently disable packages that a user already reviewed. `allow_private_http_requests` defaults to `false` to block server-side request forgery into local services and private networks. Set a switch to the narrowest value that supports the machine's intended workflows. Policy is defense in depth. It must not be used to make package declarations inaccurate, and a package or repository cannot change it.
+All four settings default to `false`. A capability is unavailable until you enable it, so approving a package is not enough on its own while its matching setting is off. The first time a script needs one, it is blocked and the error names the setting to change.
+
+Enable only what a script you trust actually needs, and leave the rest disabled. Policy is defense in depth. It must not be used to make package declarations inaccurate, and a package or repository cannot change it.
 
 ## Operator review checklist
 
