@@ -89,6 +89,10 @@ Credentials do not belong in assets. Declare them as secrets and configure value
 
 The editor and runner reject duplicate and case-colliding entries, unsupported root files, invalid asset paths, encrypted entries, unsafe compression methods, multi-disk archives, malformed central-directory records, and directories presented as files. They enforce compressed size, expanded size, per-entry size, entry-count, path-length, and compression-ratio limits from the archive structure before allocating or extracting entry data. JSON shape validation is only the first layer. Semantic checks cover relationships that JSON Schema cannot express safely.
 
+Both also require the archive itself to be unambiguous, so that a package inspected in the editor is the package the runner executes. ZIP64 archives are rejected. Data before the first entry or after the central directory is rejected, because either shifts recorded offsets and lets one file present different content to different readers. Each local entry header must agree with its central directory record on flags, compression method, and name, and on checksum and sizes unless the entry uses a trailing data descriptor. Entry data must not overlap the central directory.
+
+A package that a normal archive tool produces meets these rules. If your build pipeline emits ZIP64 or appends anything after the archive, the package will be rejected on import.
+
 ## Hashing and approval
 
 The current package format does not contain a package-author signature or an internal integrity document. On import or update, runner storage computes SHA-256 over the exact `.bbs` bytes and records that package hash. Trust-sensitive operations open one immutable package-byte snapshot, hash that snapshot, compare it with the installed and approved hashes, and parse the same snapshot. Approval therefore cannot be raced against a later read of changed package bytes. A changed archive requires a normal update and new approval.

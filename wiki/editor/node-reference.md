@@ -415,6 +415,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Configuration:** variable-aware executable, arguments, optional working directory, and optional timeout from `1` to `86400` seconds, default `300`.
 - **Outputs:** process ID, exit code, success flag, captured standard output, captured standard error, or action error.
 - **Runtime:** uses native process APIs, not shell parsing. Arguments must match the target executable's contract.
+- **Program lookup:** a name without a path separator is looked up on `PATH`, so `git` works. The working directory is never searched, which stops a file placed there from being run in place of the intended program. To run a program from a specific directory, give a path such as `./tool.exe` or a full path.
 
 ### Process Status
 
