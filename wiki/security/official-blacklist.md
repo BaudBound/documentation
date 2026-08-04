@@ -63,7 +63,7 @@ This behavior lets a publisher replace one affected package without removing pro
 
 ## Security tab
 
-Open **Security**, then find **Official blacklist**.
+Open **Security**, then find **Blacklist**.
 
 This section shows:
 

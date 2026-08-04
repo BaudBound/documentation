@@ -115,4 +115,4 @@ The database contains ciphertext and nonce, not a recoverable copy of the encryp
 
 The editor may use placeholders or user-entered actual values for one simulation. Actual values remain ephemeral and are not saved to editor project state or exported packages.
 
-Actual simulation values can still be transmitted by real browser HTTP Request simulation. Prefer test credentials and review the complete graph before entering production data. See [Verification and Simulation](../editor/simulation.md#secrets-in-simulation).
+HTTP Request simulation defaults to Mock and does not resolve secret-bearing request fields. Live mode requires explicit destination-origin authorization for the current run and can transmit actual values to that origin. Prefer test credentials and review the complete graph before authorizing Live mode. See [Verification and Simulation](../editor/simulation.md#secrets-in-simulation).

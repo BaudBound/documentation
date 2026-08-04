@@ -87,11 +87,11 @@ Credentials do not belong in assets. Declare them as secrets and configure value
 
 ## Archive safety limits
 
-The parser rejects duplicate and case-colliding entries, unsupported root files, invalid asset paths, and directories presented as files. It also enforces package entry and size limits before trusting data. JSON shape validation is only the first layer. Semantic checks cover relationships that JSON Schema cannot express safely.
+The editor and runner reject duplicate and case-colliding entries, unsupported root files, invalid asset paths, encrypted entries, unsafe compression methods, multi-disk archives, malformed central-directory records, and directories presented as files. They enforce compressed size, expanded size, per-entry size, entry-count, path-length, and compression-ratio limits from the archive structure before allocating or extracting entry data. JSON shape validation is only the first layer. Semantic checks cover relationships that JSON Schema cannot express safely.
 
 ## Hashing and approval
 
-The current package format does not contain a package-author signature or an internal integrity document. On import or update, runner storage computes SHA-256 over the exact `.bbs` bytes and records that package hash. The managed package is hashed again before trust-sensitive operations. Approval binds to that stored hash, so a changed archive requires a normal update and new approval.
+The current package format does not contain a package-author signature or an internal integrity document. On import or update, runner storage computes SHA-256 over the exact `.bbs` bytes and records that package hash. Trust-sensitive operations open one immutable package-byte snapshot, hash that snapshot, compare it with the installed and approved hashes, and parse the same snapshot. Approval therefore cannot be raced against a later read of changed package bytes. A changed archive requires a normal update and new approval.
 
 SHA-256 produces a long fingerprint from the complete file. The same file produces the same fingerprint. A changed file produces a different fingerprint. The runner uses this comparison to detect whether the installed package still matches the revision that was reviewed.
 

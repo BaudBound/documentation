@@ -1,4 +1,4 @@
-﻿---
+---
 title: Verification and Simulation
 description: Understand editor verification rules, simulation controls, trigger payloads, side effects, and runner differences.
 tags: [editor, verification, simulation]
@@ -62,7 +62,7 @@ Open **Simulation** in the inspector. Each trigger has a card containing fields 
 
 Only one trigger executes at a time. Stop an active run before firing another. Editing the graph cancels and resets the previous simulation state.
 
-Simulation executes and reports one node at a time. The active highlight, taken connection, output entry, and Runtime Data changes are published before the simulator advances to the next node. It does not execute the complete graph in the background and reveal buffered results afterward. Real time still waits for the simulated behavior of nodes such as Delay, schedules, browser HTTP requests, dialogs, and audio. The slowdown choices add review time on top of that behavior.
+Simulation executes and reports one node at a time. The active highlight, taken connection, output entry, and Runtime Data changes are published before the simulator advances to the next node. It does not execute the complete graph in the background and reveal buffered results afterward. Real time still waits for the simulated behavior of nodes such as Delay, schedules, authorized live HTTP requests, dialogs, and audio. The slowdown choices add review time on top of that behavior.
 
 The green connections remain visible after the simulation finishes so you can inspect the complete path. Starting another trigger or editing the graph clears the previous path.
 
@@ -103,7 +103,7 @@ Secret declarations appear in the output console's secret manager. Each declarat
 
 Entered values are type-checked, supplied to simulation, redacted from simulation reports where applicable, and never written into the exported package. Reloading, importing, or clearing the session can remove them.
 
-> A real secret used during simulation can still be sent by an HTTP Request node or exposed to any browser behavior the workflow invokes. Use test credentials by default and understand every path before entering production data.
+HTTP Request simulation defaults to **Mock**, which performs no network request and does not resolve secret-bearing request fields. **Live** mode identifies the literal destination origins before interpolation and requires explicit authorization for those origins for the current simulation run. Authorization is not stored for later runs. A live request can transmit entered values to an authorized origin, so use test credentials unless real access is deliberate.
 {.is-warning}
 
 ## Side effects and fidelity
@@ -111,12 +111,16 @@ Entered values are type-checked, supplied to simulation, redacted from simulatio
 The browser performs a small controlled set of visible simulation effects:
 
 - notification actions show editor toasts.
-- message boxes show an editor dialog and return the selected button.
+- Message Dialog shows a blocking editor dialog and returns the selected configured button or `timeout`. Its size, button set, and timeout countdown match the runner contract.
+- Form Dialog requires at least one component, shows its ordered components with Cancel and Submit in a blocking editor dialog, and returns the same typed `values`, `submitted`, and `button` outputs as the runner. Choice results contain configured keys in configured order, not displayed values. Packaged images render from the project asset.
+- Browser security prevents the editor simulator from reading absolute local filesystem paths. File and Folder components therefore accept explicit simulated paths; the desktop runner uses native operating-system pickers. Their submitted value shapes remain the same.
 - Beep uses browser Web Audio.
 - Play Sound can play a packaged audio asset.
-- HTTP Request uses the browser's real `fetch` API.
+- HTTP Request defaults to a deterministic mock response. Live mode sends the request through the editor's bounded same-origin server endpoint after origin authorization.
 
-HTTP simulation can contact a real server. Browser CORS, forbidden headers, user-agent handling, cookies, TLS trust, and network policy differ from the native runner.
+Live HTTP simulation accepts only public HTTP or HTTPS destinations, resolves and pins the selected public address, revalidates every redirect, rejects HTTPS-to-HTTP downgrade, strips all caller headers on cross-origin redirects, and does not forward a request body across origins unless redirect semantics convert the request to a bodyless GET. It bounds request bodies, response bodies, headers, authorized origins, and redirect hops, requests identity encoding, and supports cancellation. It does not send browser cookies.
+
+The simulation endpoint follows the shared HTTP simulation policy contract. It is still not proof of the target runner's native TLS store, account environment, destination availability, or operator policy. Test native network behavior on the intended runner before release.
 
 Other native actions are described and assigned simulated outputs without controlling the machine. This includes files, processes, shell, keyboard, mouse, clipboard, windows, physical serial ports, application opening, and WebSocket listener connections.
 
@@ -148,8 +152,8 @@ The runtime-data view updates after each step with current variables and node ou
 - [ ] Every trigger has been tested with representative valid and invalid payloads.
 - [ ] True, false, switch, loop, done, success, and failed branches behave as intended.
 - [ ] Temporary runtime overrides are removed or accounted for.
-- [ ] Secret simulation values use test credentials unless real access is explicitly intended.
-- [ ] HTTP requests target safe test endpoints.
+- [ ] Secret simulation values use test credentials unless a reviewed Live request explicitly needs real access.
+- [ ] HTTP Request nodes use Mock unless their displayed Live origin authorization is intentional.
 - [ ] Runtime data has the expected types and nested paths.
 - [ ] Native behavior still requiring runner testing is listed for the operator.
 - [ ] Export access review contains only expected permissions and capabilities.

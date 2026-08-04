@@ -41,7 +41,7 @@ Open **Settings** in the editor and complete these fields:
 | **Project ID** | Keep this value unchanged for every version of the same script |
 | **Source** | The optional source code or project page for the script |
 
-The repository URL must end in `repository.json`. It may point to a file that you have not published yet. The editor checks the address format without contacting the server.
+The repository URL must end in `repository.json`. It must use its canonical public anonymous HTTPS form with no URL username, password, query, or fragment. Query-bearing and signed URLs are rejected even when they appear temporary or harmless. The address may point to a file that you have not published yet. The editor checks its format without contacting the server.
 
 New projects use version `1.0.0`. Increase the version whenever published package bytes change.
 
@@ -61,7 +61,7 @@ The runner rejects an older version. It also rejects a changed package that reus
 4. Wait while the verified package is prepared automatically.
 5. Choose **Create repository entry**.
 6. Enter the repository name, description, and optional homepage.
-7. Enter the final public package URL.
+7. Enter the final public anonymous package URL with no query or fragment.
 8. Write optional Markdown release notes and use the Preview tab to review their formatting.
 9. Review the generated JSON.
 10. Choose **Copy repository JSON**.
@@ -213,8 +213,9 @@ Any public static HTTPS host can be used when:
 3. Redirects stay on public HTTPS destinations.
 4. Files do not require cookies, login, or private authentication.
 5. The server permits ordinary download requests from the runner.
+6. Repository and package URLs contain no user information, query, fragment, access token, or signed-download parameters.
 
-Localhost, private network addresses, plain HTTP, URLs with embedded credentials, and private authenticated repositories are not supported.
+Localhost, private network addresses, plain HTTP, URLs with embedded credentials, query-bearing or signed URLs, and private authenticated repositories are not supported. Every redirect must satisfy the same anonymous public HTTPS policy.
 
 ## Safe publishing order
 
@@ -267,7 +268,7 @@ An information mismatch may mean that the repository is stale, the publisher mad
 
 Refreshing a repository contacts its hosting server. The server can observe the runner's public IP address, request time, and ordinary request metadata.
 
-The runner does not send script secrets, browser credentials, cookies, or authentication headers to the repository.
+The runner builds anonymous requests and does not send script secrets, browser credentials, `Authorization`, `Proxy-Authorization`, or `Cookie` headers. Repository and package requests fail closed if such a header would be present.
 
 Automatic checks are disabled for each installed script by default. Enabling them requires confirmation.
 

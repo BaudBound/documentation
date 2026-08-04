@@ -1,4 +1,4 @@
-﻿---
+---
 title: Approvals, Capabilities, and Risk
 description: Review BaudBound permissions, capabilities, calculated risk, policy gates, and per-revision approval.
 tags: [security, approval, permissions, capabilities, risk]
@@ -48,10 +48,13 @@ The runner derives permissions from executable action types and variable scopes.
 | `file.download` | Medium | Download network content to a file |
 | `file.move` | Medium | Move or rename a file |
 | `file.read` | Medium | Read a bounded relative file path |
+| `file.watch.limited` | Medium | Observe changes beneath a statically bounded script-workspace path |
 | `http.request` | Medium | Send an outbound HTTP request |
 | `messageBox.show` | Medium | Display an interactive desktop dialog |
 | `notification.show` | Medium | Display a desktop notification |
+| `formDialog.show` | Medium | Interrupt the desktop user with a configured form or confirmation dialog |
 | `process.query` | Medium | Inspect process state |
+| `process.observe` | Medium | Observe process-start metadata for a configured Process Started trigger |
 | `screen.pixel.read` | Medium | Read a screen pixel on supported desktops |
 | `serial.write` | Medium | Send data to a configured serial device |
 | `sound.play` | Medium | Play package or filesystem audio |
@@ -73,11 +76,14 @@ The runner derives permissions from executable action types and variable scopes.
 | `window.focus` | High | Change foreground-window focus |
 | `file.delete.any` | Dangerous | Permanently remove a file at an unbounded path |
 | `file.read.any` | Dangerous | Read from an absolute, sensitive, parent-traversing, or runtime-selected path |
+| `file.watch.any` | Dangerous | Observe an absolute, sensitive, parent-traversing, or runtime-selected path |
 | `file.write.any` | Dangerous | Write to an absolute, sensitive, parent-traversing, or runtime-selected path |
 | `process.run` | Dangerous | Start an executable with arguments, wait for completion, and capture its output |
 | `process.shell` | Dangerous | Execute a command through a shell interpreter |
 
-Trigger nodes such as Manual, Schedule, File Watch, Hotkey, and Process Started can be permissionless while still declaring machine-checkable capabilities and requiring service prerequisites.
+Manual, Schedule, and Hotkey triggers do not need an additional user-data observation permission. File Watch requires `file.watch.limited` when its configured path is provably bounded to the script workspace and `file.watch.any` when it is absolute, sensitive, parent-traversing, runtime-selected, or otherwise cannot be proven bounded. Process Started requires `process.observe` because it continuously inspects process metadata.
+
+The editor resolves statically knowable trigger inputs before deriving these permissions. If a path depends on data that cannot be proven at package-validation time, derivation fails toward `file.watch.any`; it never silently treats an unknown path as limited. The runner independently derives and enforces the same result before registration.
 
 File permissions depend on the configured path. A bounded relative path uses `file.read`, `file.write.limited`, or `file.delete.limited`. It resolves inside `workspaces/SCRIPT_ID` under the runner home, giving each installed script its own limited workspace. Parent traversal and symbolic-link components that escape this directory are rejected.
 
@@ -92,7 +98,7 @@ Capabilities describe runtime subsystems, not user consent by themselves. Curren
 | Action and data | `action.calculate`, `action.delay`, `action.log`, `action.text`, `action.value`, `runtime.variables`, `runtime.persistent_storage`, `runtime.secrets` |
 | Files and network clients | `action.file`, `action.http` |
 | Processes and scripts | `action.process`, `action.sub_script` |
-| Desktop | `action.clipboard`, `action.keyboard`, `action.message_box`, `action.mouse`, `action.notification`, `action.pixel`, `action.sound`, `action.window` |
+| Desktop | `action.clipboard`, `action.keyboard`, `action.message_box`, `action.mouse`, `action.notification`, `action.pixel`, `action.sound`, `action.form_dialog`, `action.window` |
 | Serial | `action.serial`, `trigger.serial_input` |
 | Network replies/listeners | `action.webhook_response`, `action.websocket`, `trigger.webhook`, `trigger.websocket` |
 | Control flow | `runtime.break_loop`, `runtime.color_match`, `runtime.continue_loop`, `runtime.for_each`, `runtime.if`, `runtime.repeat`, `runtime.switch`, `runtime.while` |

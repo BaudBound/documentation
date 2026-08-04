@@ -35,6 +35,7 @@ SQLite stores:
 - installed script identity, package path, hash, versions, target, risk, and enabled state.
 - per-revision approvals and approved permissions.
 - completed run records, logs, and variable snapshots.
+- the latest retained desktop System Logs and their read state.
 - service status and reload signals used between runner processes.
 - script-scoped persistent variables.
 - runner-global variables.
@@ -137,4 +138,4 @@ The backup was opened by a newer BaudBound release. Install a compatible version
 
 Uninstalling the application does not necessarily remove the runner home. This protects scripts and state during reinstall.
 
-Deleting the runner home permanently removes installed packages, approvals, run history, persistent and global values, and encrypted secret records. Stop BaudBound, create and verify a backup, and confirm the resolved path before deletion.
+Deleting the runner home permanently removes installed packages, approvals, run history, System Logs, persistent and global values, and encrypted secret records. Stop BaudBound, create and verify a backup, and confirm the resolved path before deletion.

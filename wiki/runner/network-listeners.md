@@ -7,7 +7,7 @@ tags: [runner, webhooks, websockets, networking, security]
 
 BaudBound can accept HTTP webhook requests and WebSocket messages while a background runner is active. Every approved Webhook and WebSocket trigger is protected by default. Approving the package shows each newly created plaintext token once, then the runner keeps only its hash. A token cannot be recovered later.
 
-The token controls who can start the trigger. You must still configure TLS, firewall rules, rate limiting, and reverse proxy policy when the listener is exposed to a network.
+The token controls who can start the trigger. BaudBound's listeners speak plain HTTP and WebSocket and do not terminate TLS. When a listener is exposed beyond a trusted local network, the operator must provide HTTPS or WSS through a correctly configured reverse proxy and apply the firewall and proxy policy required by that deployment.
 
 ## Network basics
 
@@ -27,6 +27,14 @@ bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+header_read_timeout_ms = 10000
+pre_auth_timeout_ms = 5000
+body_read_progress_timeout_ms = 10000
+body_read_timeout_ms = 30000
+max_header_bytes = 32768
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 
@@ -35,15 +43,21 @@ bind = "127.0.0.1"
 port = 43892
 max_message_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+handshake_timeout_ms = 5000
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 ```
 
 The corresponding trigger-family switches under `[triggers]` must also be enabled. Configuration changes require the running service to restart.
 
-The Webhook listener accepts at most `max_connections` simultaneous connections. Extra connections are rejected while the listener is full. A client has 10 seconds to finish sending HTTP headers and 30 seconds to finish the request body. Headers are limited to 32 KiB. These fixed deadlines stop idle or deliberately slow clients from holding the listener open forever. `max_body_bytes` still limits the completed body before a workflow can start.
+The Webhook listener separately limits total connections, connections that have not authenticated, global and per-address pre-authentication request rates, header bytes, header time, authentication time, body progress time, total body time, and completed body size. The WebSocket listener applies the equivalent connection and pre-authentication controls to its handshake and separately limits accepted message size.
 
-The WebSocket listener has its own connection and message limits. These runner limits protect local resources. They do not replace firewall rules, reverse proxy request limits, or rate limiting for a public service.
+Fields documented as resource limits accept a positive integer or the exact string `"unlimited"`. Unlimited removes that BaudBound limit without adding a hidden replacement. It can allow unauthenticated clients to retain sockets, memory, and CPU indefinitely, so public deployments should normally keep finite limits and enforce additional limits at the reverse proxy.
+
+These runner controls protect local resources before a workflow starts. They do not provide TLS or replace firewall, reverse proxy, and network-level abuse controls. The runner intentionally does not trust forwarded-address headers when enforcing its per-address policy.
 
 > Changing a bind address to `0.0.0.0` can expose every registered route to other machines. BaudBound refuses a public bind when any registered trigger has token authentication disabled. The explicit unauthenticated override removes that protection and should remain off.
 {.is-warning}
@@ -193,6 +207,8 @@ Use two public hostnames so webhook and WebSocket paths cannot collide:
 - `socket.example.com` forwards to `127.0.0.1:43892`.
 
 Replace both names with real DNS names. Complete one proxy tab. TLS does not authenticate callers, so add the access control, source restrictions, and rate limits required by your deployment.
+
+The proxy must preserve webhook paths, `Authorization: Bearer` authentication, WebSocket paths, the `X-BaudBound-Token` header, and WebSocket upgrade headers. It should apply request-size, header-size, timeout, connection, and rate controls before forwarding traffic. Keep the runner listener on loopback when the proxy runs on the same machine.
 
 ### Nginx
 

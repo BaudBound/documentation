@@ -10,7 +10,7 @@ The BaudBound desktop application manages one local runner home through a native
 
 The desktop window is a control interface. The background runner is the listener loop that waits for schedules, hotkeys, webhooks, files, processes, and devices. The window can remain open while the background runner is stopped. When that happens, you can still inspect data and change settings, but automatic triggers do not fire.
 
-The interface refreshes automatically while it is open and when the window regains focus. Action results appear as notifications at the top center.
+The interface refreshes automatically while it is open and when the window regains focus. Action results appear as notifications at the top center and are also retained under System logs.
 
 ## Navigation overview
 
@@ -21,14 +21,15 @@ The interface refreshes automatically while it is open and when the window regai
 | **Scripts**   | Importing, updating, approving, enabling, running, and removing scripts                                     |
 | **Service**   | Controlling the desktop-owned background runner and inspecting listeners                                    |
 | **Security**  | Approval, risk, permissions, package integrity, secrets, and network trigger tokens                         |
-| **Tools**     | Screen-coordinate inspection and serial-port discovery                                                      |
+| **Tools**     | Live trigger monitoring, screen-coordinate inspection, and serial-port discovery                           |
 | **Runs**      | Per-run status, logs, results, and variable snapshots                                                       |
-| **Logs**      | Searching recent log messages across runs                                                                   |
-| **Monitor**   | Watching live trigger input and execution queue decisions                                                   |
+| **Logs**      | Searching retained run output and runner system events                                                      |
 | **Variables** | Inspecting stored persistent and global values and package defaults                                         |
 | **Config**    | Shared, runner, and desktop application configuration                                                       |
 | **Doctor**    | Native support, registered triggers, serial-reader health, paths, runtime facts, and corrective diagnostics |
 | **About**     | Runner version, project links, licensing, credits, update status, and release notes                         |
+
+Navigation badges surface state that may need attention. Scripts shows the number of installed scripts needing review, Runs shows active executions, and Doctor shows warnings. Logs shows unread System Logs using severity priority: errors first, then warnings, then the combined information and success count. Its tooltip and the System Logs selector show the complete severity breakdown.
 
 ## Dashboard
 
@@ -110,11 +111,32 @@ The network trigger authentication table lists every installed Webhook and WebSo
 
 The secret panel lists each script's declarations and whether a value is configured. Setting a secret opens a protected input dialog. Removing it makes dependent runs ineligible until another value is supplied.
 
+The **Blacklist** section shows the current official advisory status and refresh controls. Personal repository blocks remain separate from the official service. See [Official Blacklist and Personal Block List](../security/official-blacklist.md).
+
 Approval does not override malformed packages, unsupported targets, missing required secrets, or runner policy. See [Approvals, Capabilities, and Risk](../security/approvals-capabilities.md).
 
 ## Tools
 
 <!-- desktop-tab:tools -->
+
+### Live trigger monitor
+
+The Live trigger monitor shows input received by registered triggers while the background runner is active. Use it to confirm what a serial device, webhook, WebSocket client, schedule, file watcher, hotkey, process watcher, startup trigger, or Manual trigger sent to the runner. It does not open devices or network listeners by itself. The related trigger must already be registered and active.
+
+Choose **Start monitoring** before reproducing the event. Monitoring is off by default and remains active when you open another tab. Choose **Stop monitoring** when the input is no longer needed. Monitor data stays in memory only and is removed when BaudBound exits.
+
+Each row shows the event time, script, trigger node, exact trigger type, queue result, and payload preview. Choose **View details** to inspect the complete captured payload. Control characters such as carriage returns and newlines are shown visibly so device framing problems do not remain hidden.
+
+The queue result has two possible values:
+
+1. **Queued** means the runner accepted the event for script execution.
+2. **Rejected** means the execution queue did not accept the event. Open the details to read the exact reason.
+
+**Pause view** freezes the visible list while capture continues. **Follow newest** is enabled by default and keeps the latest row visible. Search and filters only change what is displayed. **Clear** removes captured rows from the current monitor session and does not delete runs or logs.
+
+The monitor keeps the latest 500 events. Payloads larger than 64 KiB are shortened in the monitor copy. The trigger still receives its original payload. If the monitor cannot copy an event without waiting, BaudBound reports an omitted monitor event. This does not mean that execution was rejected and it does not affect the script.
+
+BaudBound removes known network authentication headers from monitored payloads. Other trigger data can still contain private information. Inspect monitor data before sharing a screenshot or report.
 
 ### Screen coordinates
 
@@ -164,7 +186,9 @@ Use the run ID when correlating an entry with Logs or CLI output. Secret plainte
 
 <!-- desktop-tab:logs -->
 
-Logs searches all retained messages across scripts, nodes, and runs. Each entry includes the time when that message was emitted, level, script, node, action type, message, run ID, and original position inside its run. Two messages can have the same displayed time and still retain their original execution order. Use the page controls to move through the complete result.
+Logs has separate **Run logs** and **System logs** sections.
+
+Run logs searches all retained messages across scripts, nodes, and runs. Each entry includes the time when that message was emitted, level, script, node, action type, message, run ID, and original position inside its run. Two messages can have the same displayed time and still retain their original execution order. Use the page controls to move through the complete result.
 
 Choose **Export JSON** to save the matching log records with runner and query context. Choose **Export CSV** when the records need to be opened in a spreadsheet or another compatible tool. Both options export all records included by the current search, not only the visible page.
 
@@ -172,36 +196,21 @@ Use **Clear logs** to permanently remove stored messages while preserving run st
 
 Log levels are `debug`, `info`, `warn`, and `error`. An error message can appear in a run that later records another terminal state, so inspect the full run rather than inferring its result from one line.
 
-## Monitor
+System logs retain desktop application events, including every success, information, warning, and error notification. Each record keeps its source, title, complete message, timestamp, severity, and any structured details supplied by the operation. Credentials are redacted before storage. Text in the list and details dialog is selectable. Choose **View details** to inspect every retained field or copy the complete retained record.
 
-<!-- desktop-tab:monitor -->
+Search covers source, title, message, and details. The severity filter narrows the list. **Export JSON** exports every record matching the current query, not only the visible page, using the `baudbound.system-logs` format. **Clear logs** in this section removes System Logs only and does not remove run history or run output.
 
-Monitor shows input received by registered triggers while the background runner is active. Use it to confirm what a serial device, webhook, WebSocket client, schedule, file watcher, hotkey, process watcher, startup trigger, or Manual trigger sent to the runner. It does not open devices or network listeners by itself. The related trigger must already be registered and active.
-
-Choose **Start monitoring** before reproducing the event. Monitoring is off by default and remains active when you open another tab. Choose **Stop monitoring** when the input is no longer needed. Monitor data stays in memory only and is removed when BaudBound exits.
-
-Each row shows the event time, script, trigger node, exact trigger type, queue result, and payload preview. Choose **View details** to inspect the complete captured payload. Control characters such as carriage returns and newlines are shown visibly so device framing problems do not remain hidden.
-
-The queue result has two possible values:
-
-1. **Queued** means the runner accepted the event for script execution.
-2. **Rejected** means the execution queue did not accept the event. Open the details to read the exact reason.
-
-**Pause view** freezes the visible list while capture continues. **Follow newest** is enabled by default and keeps the latest row visible. Search and filters only change what is displayed. **Clear** removes captured rows from the current monitor session and does not delete runs or logs.
-
-The monitor keeps the latest 500 events. Payloads larger than 64 KiB are shortened in the monitor copy. The trigger still receives its original payload. If the monitor cannot copy an event without waiting, BaudBound reports an omitted monitor event. This does not mean that execution was rejected and it does not affect the script.
-
-BaudBound removes known network authentication headers from monitored payloads. Other trigger data can still contain private information. Inspect monitor data before sharing a screenshot or report.
+BaudBound retains the latest 1,000 System Logs. Opening the System logs section marks the retained entries as read. The Logs navigation badge prioritizes unread errors, then warnings, then information and successes, while the selector inside Logs displays each unread severity separately.
 
 ## Variables
 
 <!-- desktop-tab:variables -->
 
-Variables provides one place to inspect values that exist outside a single completed run. **Stored values** contains current persistent and global values from runner storage. It shows the scope, owning script where applicable, current JSON value, and last update time.
+Variables provides one place to inspect values that exist outside a single completed run. **Stored values** contains current persistent and global values from runner storage. It shows the scope, owning script where applicable, formatted value, and last update time.
 
 Stored values update through runner events as soon as a successful variable write is committed. The page does not poll the database for changes.
 
-**Declared defaults** contains the default variables from every installed package. It shows the script, scope, declared type, default value, and description. Runtime defaults reset when a run starts. Persistent defaults initialize durable state only when the runner has not stored a value yet.
+**Declared defaults** contains the default variables from every installed package. It shows the script, scope, declared type, formatted default value, and description. Runtime defaults reset when a run starts. Persistent defaults initialize durable state only when the runner has not stored a value yet.
 
 Choose **Export variables** to save all stored values and declared defaults in one JSON file. The export also includes scopes, types, script ownership, runner information, and declaration warnings. The current search does not limit the export. Managed secret values are never included.
 
@@ -217,7 +226,7 @@ Use **Simple** mode for validated fields and switches. The page separates settin
 
 **Runner configuration** contains target runtimes, reload timing, trigger families, network listeners, and serial devices.
 
-**Desktop configuration** contains login startup, automatic background startup, tray startup, and close behavior. These values affect the graphical app only. They do not change a headless `baudbound serve` process.
+**Desktop configuration** contains login startup, automatic background startup, tray startup, close behavior, and Dialog Console preferences. These values affect the graphical app only. They do not change a headless `baudbound serve` process.
 
 Use **Advanced** mode for the complete raw TOML. The CodeMirror editor supports line numbers, selection, normal keyboard editing, indentation, and scrolling. The runner validates the entire document before replacing the active configuration.
 
@@ -232,6 +241,14 @@ Enable **Restart desktop background runner after saving** when listener, target,
 **Hide window when launched at login** keeps BaudBound in the system tray when it starts automatically after you sign in. Opening BaudBound manually still shows the window.
 
 **Keep running when the window closes** hides the window in the tray. When disabled, closing the window stops the desktop background runner and exits the application.
+
+### Dialog Console
+
+Message Dialog and Form Dialog normally open transient windows sized by their node configuration. **Dialog console mode** instead keeps one resizable dialog window open. While idle it displays a waiting state. When a dialog request arrives, that request replaces the idle content. After the user responds, the next queued request is shown or the window returns to its waiting state.
+
+**Focus dialog console on request** brings the console forward when a new request becomes active. If the operating system refuses focus, BaudBound requests user attention. **Keep dialog console on top** pins the console above ordinary windows. Both controls apply only while console mode is enabled.
+
+The console menu can enter or leave true fullscreen. The normal console window can be freely resized down to its minimum usable dimensions. Disabling console mode closes the idle console and restores transient dialog windows for later requests.
 
 **Clock format** changes human readable desktop and CLI timestamps between 12 hour and 24 hour notation. The same value can be changed with `baudbound config set display.time-format`.
 

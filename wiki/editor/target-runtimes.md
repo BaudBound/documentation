@@ -1,4 +1,4 @@
-﻿---
+---
 title: Target Runtimes and Platform Support
 description: Select the exact Windows and Linux environments where a package is allowed to run.
 tags: [editor, runner, compatibility, platforms]
@@ -44,6 +44,8 @@ These nodes require a Desktop target:
 - Clipboard.
 - Keyboard and Type Text.
 - Show Notification.
+- Message Dialog.
+- Form Dialog.
 - Mouse Click and Move Mouse.
 - Play Sound.
 
@@ -53,7 +55,6 @@ The editor checks node definitions, and the runner independently applies its cor
 
 These nodes support only Windows Desktop:
 
-- MessageBox.
 - Get Active Window.
 - Window Focus.
 - Get Pixel Color.
