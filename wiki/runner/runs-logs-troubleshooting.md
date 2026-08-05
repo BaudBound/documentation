@@ -1,4 +1,4 @@
-﻿---
+---
 title: Runs, Logs, and Troubleshooting
 description: Inspect execution history, correlate logs, and diagnose package, approval, trigger, device, network, or update failures.
 tags: [runner, storage, logs, troubleshooting]
@@ -42,7 +42,7 @@ Retention never deletes installed scripts, approvals, persistent variables, glob
 ## Inspect in the desktop app
 
 1. Open **Scripts** and choose **View details** for the affected script. Confirm package hash, compatibility, enablement, approval, and required-secret state.
-2. Open **Monitor** and choose **Start monitoring** when an automatic trigger does not appear to work. Reproduce the event and check whether it was queued or rejected. A missing event means the trigger did not reach the execution queue. A rejected event includes the reason.
+2. Open **Tools**, find **Live trigger monitor**, and choose **Start monitoring** when an automatic trigger does not appear to work. Reproduce the event and check whether it was queued or rejected. A missing event means the trigger did not reach the execution queue. A rejected event includes the reason.
 3. Open **Runs** and check **Currently running** when the script has not finished. The live entry shows which trigger started it and displays new log messages as they are emitted.
 4. Choose **Stop** on an active entry when the run must end. Cancellation is cooperative, so the entry remains visible until the current action reaches a safe point.
 5. For a finished run, select the relevant script and choose the newest failed or cancelled record.
@@ -50,21 +50,23 @@ Retention never deletes installed scripts, approvals, persistent variables, glob
 7. Inspect its node logs and final variables. Each log time records when that entry was emitted, not when the run finished. A node ID connects a runtime failure to the editor graph.
 8. Open **Doctor** when the event is missing or a configured serial reader is disconnected. It lists registered triggers and live serial readers. Use **Tools** to scan the serial ports currently detected by the machine. Open **Service** for listener state.
 
-Monitor is a temporary live view. It keeps the latest 500 events in memory and does not replace Runs or Logs. A monitor omission warning means the UI copy could not be captured without slowing execution. The script event was not rejected. A row marked **Rejected** is different because it means the real execution queue did not accept the event.
+Live trigger monitor is a temporary view. It keeps the latest 500 events in memory and does not replace Runs or Logs. A monitor omission warning means the UI copy could not be captured without slowing execution. The script event was not rejected. A row marked **Rejected** is different because it means the real execution queue did not accept the event.
 
-The **Logs** tab searches messages across all retained runs. Use a run ID to avoid mixing errors from two overlapping executions. Results are paginated, so a search is applied before the page is selected.
+The **Run logs** section under Logs searches messages across all retained runs. Use a run ID to avoid mixing errors from two overlapping executions. Results are paginated, so a search is applied before the page is selected.
+
+The **System logs** section stores desktop and runner events that may also appear as notifications. Search source, title, message, or details, filter by severity, and open a record to inspect or copy every retained field. Opening this section marks retained System Logs as read. The navigation badge shows unread errors first, then warnings, then information and successes, while the section selector shows the complete unread breakdown.
 
 For a support case, select the relevant records in Runs and choose **Export selected**. A single run produces one JSON file. Multiple runs produce a ZIP archive with one JSON file for every run and a manifest. The files include complete stored logs, final variable snapshots, scopes, script identity, trigger identity, timestamps, runner version, platform, and storage schema version. Managed secret values are excluded.
 
-Use **Export JSON** or **Export CSV** in Logs when the investigation needs messages from many runs. The current search controls which records are exported. Export includes all matching messages rather than only the visible page.
+Use **Export JSON** or **Export CSV** in Run logs when the investigation needs messages from many runs. The current search controls which records are exported. Export includes all matching messages rather than only the visible page. System logs has a separate **Export JSON** action for all system events matching its search and severity filters.
 
 Open **Variables** to inspect current persistent and global values together with defaults declared by installed packages. Choose **Export variables** to save the complete variable inventory as JSON. The export includes stored values, declared defaults, scopes, types, script ownership, runner information, and declaration warnings. Managed secrets are not included. Runtime and node output values belong to one execution and remain in that run's detail view.
 
-JSON exports identify their document structure with a `format` field. Run files use `baudbound.run`, log files use `baudbound.logs`, and variable files use `baudbound.variables`. The separate `format_version` number allows BaudBound tools to recognize future structural changes.
+JSON exports identify their document structure with a `format` field. Run files use `baudbound.run`, run log files use `baudbound.logs`, System Log files use `baudbound.system-logs`, and variable files use `baudbound.variables`. The separate `format_version` number allows BaudBound tools to recognize future structural changes.
 
 Use **Clear runs** on the Runs page to delete every completed run record stored by the runner. This includes records that are older than the ones currently shown. BaudBound asks for confirmation before deleting them. Running scripts are not stopped and can create new records when they finish.
 
-Use **Clear logs** on the Logs page when you want to remove stored messages but keep the run records. Run status, identifiers, completion times, and final variable values remain available. BaudBound asks for confirmation before clearing the messages. Running scripts can add new messages after the operation completes.
+Use **Clear logs** in Run logs when you want to remove stored run messages but keep the run records. Run status, identifiers, completion times, and final variable values remain available. The System logs section has a separate clear action that removes only its retained system events. BaudBound asks for confirmation before either operation. Running scripts and desktop actions can add new messages after clearing completes.
 
 The desktop receives active run changes directly from the Rust runner. A run does not need to remain active until the next refresh interval. Finished history is refreshed only after the runner has committed its terminal record to SQLite.
 
@@ -85,6 +87,16 @@ HTTP Request logs keep the method, destination scheme, host, port, path, query p
 For JSON and form bodies, common secret fields such as passwords, tokens, cookies, authorization values, API keys, and nested equivalents are redacted before a preview is stored. BaudBound then applies configured secret-value redaction. Control characters are escaped so `\r`, `\n`, tabs, and binary-looking data cannot alter the log layout. Unknown binary bodies are represented by metadata and a hash instead of raw bytes.
 
 Previews are bounded and include a truncation marker when content does not fit. These protections cannot recognize every piece of private business data. Do not place unnecessary personal or confidential content in logs, and inspect an export before sharing it.
+
+## Interactive desktop dialogs
+
+Message Dialog and Form Dialog require the BaudBound desktop application in a signed-in Windows or Linux graphical session. Headless and normal CLI-only runner modes reject them during compatibility checks. If a desktop package reports `DESKTOP_DIALOG_UNAVAILABLE`, verify that it is running through the desktop background runner rather than a headless service.
+
+Only one interactive dialog is active at a time. Additional Message Dialog and Form Dialog requests wait in a first-in, first-out queue. Stopping a run removes its active or queued request. Restarting the background runner, reloading its configuration, or exiting the app cancels affected requests. A configured dialog timeout is shown as a countdown and returns the normal `timeout` result. It is different from runtime cancellation.
+
+By default, each active request uses a transient window with the size configured on its node. Enable **Dialog console mode** under Config to keep one resizable window open. The console displays an idle waiting state, replaces its content when a request becomes active, shows the number of waiting requests, and can enter true fullscreen from its menu. Config can also focus the console for each request or keep it above ordinary windows.
+
+Password components in a Form Dialog are available only during the active run. BaudBound redacts each submitted password and values derived from it from retained logs, omits the containing dialog `values` object from retained run variables, and rejects writes of password-derived data to persistent or global variables. Non-secret sibling fields remain usable downstream. The dialog is not a secure-desktop surface, so operating-system screen capture, accessibility tools, key loggers, or other software with equivalent access remain outside this guarantee.
 
 The shared clock setting changes human readable desktop and CLI timestamps between 12 hour and 24 hour notation. Change it in the desktop Config page or with `baudbound config set display.time-format`. It does not alter stored timestamps, log order, or CLI JSON values.
 
@@ -111,7 +123,7 @@ Use `--json` only on commands that document it when collecting structured diagno
 | Import rejected | `baudbound validate PACKAGE` | Package format, target, version, graph, declarations |
 | Script needs attention | Scripts or `baudbound script status` | Hash, approval, secrets, compatibility, enablement |
 | Manual run rejected | `baudbound script inspect` | Manual trigger, approval, policy, target, secrets |
-| No automatic event | Monitor, Doctor, and Service | Script enabled, registration, family toggle, OS prerequisite |
+| No automatic event | Tools, Doctor, and Service | Live trigger monitor, script enablement, registration, family toggle, OS prerequisite |
 | Run failed at a node | Runs and Logs | Node config, resolved variables, native error, failure branch |
 | Serial disconnected | Doctor, then Tools | Reader state, detected ports, access, protocol, USB identity, ambiguity |
 | Webhook unavailable | Service listener | Bind, port, route, firewall/proxy, body limit |

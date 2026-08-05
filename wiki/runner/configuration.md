@@ -79,8 +79,13 @@ These settings affect only the native Windows and Linux desktop app. They do not
 | `desktop.start_background_runner_on_launch` | boolean. `false` | Starts trigger listeners when the desktop app opens |
 | `desktop.start_minimized_to_tray` | boolean. `false` | Keeps the window hidden in the system tray when BaudBound starts automatically after login |
 | `desktop.keep_running_on_close` | boolean. `true` | Hides the window in the tray instead of exiting when it is closed |
+| `desktop.dialog_console_enabled` | boolean. `false` | Keeps one resizable dialog window open and replaces its content as Message Dialog and Form Dialog requests become active |
+| `desktop.dialog_console_focus_on_request` | boolean. `true` | Focuses the Dialog Console when a queued dialog becomes active |
+| `desktop.dialog_console_always_on_top` | boolean. `false` | Pins the Dialog Console above ordinary windows |
 
 The login setting represents the desired operating system registration. BaudBound reconciles the real registration when the app starts and when Config is saved. Doctor reports a warning if the requested and actual states do not match.
+
+Dialog Console settings are applied by the desktop application when configuration is saved. They do not require a background-runner restart. With console mode disabled, each request uses a transient window sized by its node. With console mode enabled, requests use one persistent resizable window and wait in first-in, first-out order when another dialog is active. The console menu also provides true fullscreen.
 
 ## Runner settings
 
@@ -94,24 +99,39 @@ The login setting represents the desired operating system registration. BaudBoun
 
 Supported target strings are `Linux Headless`, `Windows Headless`, `Windows Desktop`, and `Linux Desktop`. A runner accepts only the exact target for its current operating system and execution mode.
 
-## External data limits
+## Resource and retained-data limits
 
-These limits prevent one action from loading an unexpectedly large response or file into memory. Every value must be greater than zero.
+Resource limits prevent one script, action, or listener from consuming an unexpected amount of memory, execution time, process capacity, or queued work. A resource-limit value is either a positive integer or the exact string `"unlimited"`. `unlimited` removes the BaudBound policy limit for that setting; operating-system limits and allocation failures still apply.
 
 | Key | Type/default | Meaning |
 | --- | --- | --- |
-| `limits.max_http_response_bytes` | positive integer. `10485760` | Maximum HTTP response body returned to a workflow |
-| `limits.max_file_download_bytes` | positive integer. `104857600` | Maximum file download size before the temporary download is removed |
-| `limits.max_file_read_bytes` | positive integer. `10485760` | Maximum regular file size accepted by File Read |
+| `limits.max_http_response_bytes` | resource limit. `10485760` | Maximum HTTP response body returned to a workflow |
+| `limits.max_file_download_bytes` | resource limit. `104857600` | Maximum file download size before the temporary download is removed |
+| `limits.max_file_read_bytes` | resource limit. `10485760` | Maximum regular file size accepted by File Read |
+| `limits.max_generated_text_bytes` | resource limit. `67108864` | Maximum generated text value produced by text actions |
+| `limits.max_process_output_bytes` | resource limit. `8388608` | Maximum combined process output retained by one action |
+| `limits.max_active_runs_global` | resource limit. `16` | Maximum active runs across the runner |
+| `limits.max_active_runs_per_script` | resource limit. `1` | Maximum active runs for one script |
+| `limits.max_queued_activations_per_script` | resource limit. `64` | Maximum waiting trigger activations for one script |
+| `limits.max_schedule_catch_up_events_per_poll` | resource limit. `1000` | Maximum overdue schedule events dispatched during one service poll |
+| `limits.queue_overflow_strategy` | `reject_newest` or `drop_oldest`. `reject_newest` | Which activation is discarded when a finite script queue is full |
+| `limits.max_steps_per_run` | resource limit. `1000000` | Maximum executed nodes in one run |
+| `limits.max_run_duration_ms` | resource limit. `3600000` | Maximum wall-clock duration of one run in milliseconds |
+| `limits.max_loop_iterations_per_run` | resource limit. `1000000` | Combined loop iterations allowed in one run |
+| `limits.max_processes_per_script` | resource limit. `4` | Maximum child processes simultaneously owned by one script |
+| `limits.max_process_launches_per_minute` | resource limit. `120` | Maximum process launches by one script in a rolling minute |
+| `limits.max_file_write_bytes_per_run` | resource limit. `1073741824` | Maximum bytes written by file actions in one run |
 | `limits.max_log_entry_bytes` | positive integer. `16384` | Maximum retained size of one log message |
-| `limits.max_runtime_variable_bytes` | positive integer. `16777216` | Maximum serialized size of one variable during active execution |
+| `limits.max_runtime_variable_bytes` | resource limit. `16777216` | Maximum serialized size of one variable during active execution |
 | `limits.max_run_log_bytes` | positive integer. `2097152` | Maximum combined retained log size for one run |
 | `limits.max_retained_variable_bytes` | positive integer. `262144` | Maximum retained size of one variable in completed run history |
 | `limits.max_run_record_bytes` | positive integer. `8388608` | Maximum serialized size of one retained run record |
 
 File Download writes to a temporary file beside the destination. BaudBound replaces the destination only after the complete download passes the size limit. A failed oversized download does not leave partial destination data.
 
-These limits do not set a maximum run duration. An intentional endless workflow can keep running. When retained diagnostics reach a limit, BaudBound stores a clear truncation or suppression message and stops growing that retained output. Active values that exceed `max_runtime_variable_bytes` are rejected because allowing them to grow without a bound could exhaust memory.
+Finite schedule catch-up limits do not coalesce or discard overdue events. Remaining events stay due for later polls, preserving the configured cadence. A 1 millisecond schedule interval is valid. Setting catch-up, run, queue, process, output, or file limits to `"unlimited"` is also valid, but it can allow sustained CPU, memory, storage, process, or listener usage. BaudBound does not silently clamp these choices.
+
+When retained diagnostics reach their fixed retention limits, BaudBound stores a clear truncation or suppression message and stops growing that retained output. Active values that exceed a finite `max_runtime_variable_bytes` are rejected.
 
 ## Runner security policy
 
@@ -119,21 +139,21 @@ Approval and runner policy answer different questions. Approval means that you t
 
 | Key | Type/default | Meaning |
 | --- | --- | --- |
-| `security.policy.allow_shell_commands` | boolean. `true` | Allows approved packages to use shell command actions |
-| `security.policy.allow_dangerous_permissions` | boolean. `true` | Allows approved packages that require any Dangerous permission |
-| `security.policy.allow_public_network_listeners` | boolean. `true` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
+| `security.policy.allow_shell_commands` | boolean. `false` | Allows approved packages to use shell command actions |
+| `security.policy.allow_dangerous_permissions` | boolean. `false` | Allows approved packages that require any Dangerous permission |
+| `security.policy.allow_public_network_listeners` | boolean. `false` | Allows approved Webhook and WebSocket triggers to bind to a non-loopback address |
 | `security.policy.allow_private_http_requests` | boolean. `false` | Allows HTTP Request actions to contact loopback, private, link-local, and other non-public destinations |
 
 Changing a value to `false` cannot grant access. It only blocks affected scripts. A blocked script cannot register triggers or run manually. The error identifies the setting that blocked it. Repositories and packages cannot change these values.
 
-The defaults preserve the existing approval model. For a runner that only needs ordinary local automation, a stricter starting point is:
+Every capability starts disabled. Approving a package is not enough on its own. If a script needs one of these capabilities, the matching setting must also be `true`, so a new runner cannot run a shell command or bind a public listener until you decide it may.
+
+You will meet this the first time you approve a script that needs one. The script is blocked and the error names the setting to change. Set that one setting to `true` and run the script again. Turn on only what a script you trust actually needs, and leave the rest disabled.
 
 ```toml
 [security.policy]
-allow_shell_commands = false
-allow_dangerous_permissions = false
-allow_public_network_listeners = false
-allow_private_http_requests = false
+# Enable only the capabilities your approved scripts require.
+allow_shell_commands = true
 ```
 
 Keep `allow_private_http_requests` disabled unless an approved workflow must call a service on the runner machine or private network. Enabling it affects outbound HTTP Request actions. It does not enable inbound Webhook or WebSocket listeners. The runner resolves destinations itself, bypasses proxy configuration, and rechecks redirects so a public URL cannot silently redirect to a blocked private destination.
@@ -163,6 +183,14 @@ Disabling a family prevents all scripts in that family from registering. Restart
 | `webhooks.port` | integer. `43891` | `1-65535` and available | Must not conflict with another process |
 | `webhooks.max_body_bytes` | positive integer. `1048576` | Maximum accepted HTTP body | Bounds memory and request size |
 | `webhooks.max_connections` | positive integer. `128` | Maximum simultaneous accepted connections | Bounds sockets and slow clients |
+| `webhooks.max_unauthenticated_connections` | resource limit. `32` | Connections admitted before trigger authentication completes | Bounds slow or invalid clients |
+| `webhooks.pre_auth_requests_per_minute_global` | resource limit. `600` | Global pre-authentication requests in a rolling minute | Bounds listener-wide floods |
+| `webhooks.pre_auth_requests_per_minute_per_address` | resource limit. `60` | Pre-authentication requests per remote address in a rolling minute | Bounds one-address floods |
+| `webhooks.header_read_timeout_ms` | resource limit. `10000` | Deadline for complete HTTP headers | Bounds slow headers |
+| `webhooks.pre_auth_timeout_ms` | resource limit. `5000` | Deadline for token verification | Bounds authentication work |
+| `webhooks.body_read_progress_timeout_ms` | resource limit. `10000` | Maximum pause between body chunks | Bounds stalled uploads |
+| `webhooks.body_read_timeout_ms` | resource limit. `30000` | Total body-read deadline | Bounds slow request bodies |
+| `webhooks.max_header_bytes` | resource limit. `32768` | Maximum HTTP header buffer | Bounds parser memory |
 | `webhooks.allow_browser_origins` | string array. `[]` | Exact HTTP or HTTPS browser origins | Empty rejects browser-origin requests |
 | `webhooks.allow_unauthenticated_public_bind` | boolean. `false` | Permit a public listener while a trigger has auth disabled | Unsafe emergency override |
 
@@ -176,6 +204,10 @@ Keep loopback unless exposure controls are designed. See [Webhooks, WebSockets, 
 | `websockets.port` | integer. `43892` | `1-65535` and available | Must not conflict |
 | `websockets.max_message_bytes` | positive integer. `1048576` | Maximum text message size | Bounds per-message work |
 | `websockets.max_connections` | positive integer. `128` | Concurrent connection limit | Bounds sockets and registry state |
+| `websockets.max_unauthenticated_connections` | resource limit. `32` | Connections admitted before handshake authentication completes | Bounds slow or invalid clients |
+| `websockets.pre_auth_requests_per_minute_global` | resource limit. `600` | Global pre-authentication handshakes in a rolling minute | Bounds listener-wide floods |
+| `websockets.pre_auth_requests_per_minute_per_address` | resource limit. `60` | Pre-authentication handshakes per remote address in a rolling minute | Bounds one-address floods |
+| `websockets.handshake_timeout_ms` | resource limit. `5000` | Deadline for the authenticated WebSocket upgrade | Bounds incomplete handshakes |
 | `websockets.allow_browser_origins` | string array. `[]` | Exact HTTP or HTTPS browser origins | Empty rejects browser-origin handshakes |
 | `websockets.allow_unauthenticated_public_bind` | boolean. `false` | Permit a public listener while a trigger has auth disabled | Unsafe emergency override |
 
@@ -291,6 +323,19 @@ time_format = "24-hour"
 max_http_response_bytes = 10485760
 max_file_download_bytes = 104857600
 max_file_read_bytes = 10485760
+max_generated_text_bytes = 67108864
+max_process_output_bytes = 8388608
+max_active_runs_global = 16
+max_active_runs_per_script = 1
+max_queued_activations_per_script = 64
+max_schedule_catch_up_events_per_poll = 1000
+queue_overflow_strategy = "reject_newest"
+max_steps_per_run = 1000000
+max_run_duration_ms = 3600000
+max_loop_iterations_per_run = 1000000
+max_processes_per_script = 4
+max_process_launches_per_minute = 120
+max_file_write_bytes_per_run = 1073741824
 max_log_entry_bytes = 16384
 max_runtime_variable_bytes = 16777216
 max_run_log_bytes = 2097152
@@ -298,9 +343,9 @@ max_retained_variable_bytes = 262144
 max_run_record_bytes = 8388608
 
 [security.policy]
-allow_shell_commands = true
-allow_dangerous_permissions = true
-allow_public_network_listeners = true
+allow_shell_commands = false
+allow_dangerous_permissions = false
+allow_public_network_listeners = false
 allow_private_http_requests = false
 
 [updates]
@@ -308,6 +353,9 @@ automatic_checks = true
 check_interval_hours = 24
 
 [desktop]
+dialog_console_always_on_top = false
+dialog_console_enabled = false
+dialog_console_focus_on_request = true
 launch_at_login = false
 start_background_runner_on_launch = false
 start_minimized_to_tray = false
@@ -328,6 +376,14 @@ bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+header_read_timeout_ms = 10000
+pre_auth_timeout_ms = 5000
+body_read_progress_timeout_ms = 10000
+body_read_timeout_ms = 30000
+max_header_bytes = 32768
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 
@@ -336,6 +392,10 @@ bind = "127.0.0.1"
 port = 43892
 max_message_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+handshake_timeout_ms = 5000
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 ```
@@ -357,6 +417,19 @@ time_format = "24-hour"
 max_http_response_bytes = 10485760
 max_file_download_bytes = 104857600
 max_file_read_bytes = 10485760
+max_generated_text_bytes = 67108864
+max_process_output_bytes = 8388608
+max_active_runs_global = 16
+max_active_runs_per_script = 1
+max_queued_activations_per_script = 64
+max_schedule_catch_up_events_per_poll = 1000
+queue_overflow_strategy = "reject_newest"
+max_steps_per_run = 1000000
+max_run_duration_ms = 3600000
+max_loop_iterations_per_run = 1000000
+max_processes_per_script = 4
+max_process_launches_per_minute = 120
+max_file_write_bytes_per_run = 1073741824
 max_log_entry_bytes = 16384
 max_runtime_variable_bytes = 16777216
 max_run_log_bytes = 2097152
@@ -374,6 +447,9 @@ automatic_checks = true
 check_interval_hours = 24
 
 [desktop]
+dialog_console_always_on_top = false
+dialog_console_enabled = false
+dialog_console_focus_on_request = true
 launch_at_login = false
 start_background_runner_on_launch = false
 start_minimized_to_tray = false
@@ -394,6 +470,14 @@ bind = "127.0.0.1"
 port = 43891
 max_body_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+header_read_timeout_ms = 10000
+pre_auth_timeout_ms = 5000
+body_read_progress_timeout_ms = 10000
+body_read_timeout_ms = 30000
+max_header_bytes = 32768
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 
@@ -402,6 +486,10 @@ bind = "127.0.0.1"
 port = 43892
 max_message_bytes = 1048576
 max_connections = 128
+max_unauthenticated_connections = 32
+pre_auth_requests_per_minute_global = 600
+pre_auth_requests_per_minute_per_address = 60
+handshake_timeout_ms = 5000
 allow_browser_origins = []
 allow_unauthenticated_public_bind = false
 ```

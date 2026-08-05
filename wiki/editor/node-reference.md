@@ -60,17 +60,17 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### File Watch
 
-- **Action type:** `trigger.file_watch`. Capability `trigger.file_watch`. Low risk.
+- **Action type:** `trigger.file_watch`. Capability `trigger.file_watch`. Permission `file.watch.limited` for a bounded relative path or `file.watch.any` for an unbounded path. Medium or Dangerous risk.
 - **Configuration:** variable-aware **Path**. Optional **Include subdirectories** for directory targets. Trigger fields can use only values available before a run begins, such as defaults and Script Settings.
 - **Outputs:** `path` and normalized `event` (`created`, `modified`, `deleted`, or `renamed`).
 - **Use:** react to one file or a directory tree.
-- **Runtime:** target must exist and be accessible when listener registration starts. OS save behavior may emit multiple events.
+- **Runtime:** target must exist and be accessible when listener registration starts. Absolute, parent-traversing, sensitive, or runtime-selected paths require `file.watch.any`. OS save behavior may emit multiple events.
 - **Simulation:** supplied path/event become outputs. No filesystem watcher is opened.
 
 ### Webhook
 
 - **Action type:** `trigger.webhook`. Capability `trigger.webhook`. Permission `network.webhook`. High risk.
-- **Configuration:** HTTP **Method**. Required **Hook name**. Optional wait switch, positive response timeout, fallback status `100-599`, content type, and body.
+- **Configuration:** HTTP **Method**. Required **Hook name** using letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. Optional wait switch, positive response timeout, fallback status `100-599`, content type, and body.
 - **Outputs:** `method`, `path`, `headers`, `query`, raw `body`, parsed `json`, and `response` state.
 - **Use:** receive HTTP at `/events/HOOK_NAME` while webhooks are enabled.
 - **Flow rule:** waiting mode requires a reachable Webhook Response node. Timeout uses the configured fallback.
@@ -98,7 +98,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Serial Input
 
 - **Action type:** `trigger.serial_input`. Capability `trigger.serial_input`. Permission `serial.input`. High risk.
-- **Configuration:** required logical **Device id**. Lowercase letters, numbers, `_`, and `-` only.
+- **Configuration:** required logical **Device id** using letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores.
 - **Outputs:** `device_id`, received `data`, byte count, and runner `timestamp`.
 - **Use:** start when a runner-mapped serial device emits data.
 - **Runner framing:** the runner mapping decides whether a complete message ends after an idle gap, at a line ending, or at each raw operating system chunk. Multiple Serial Input nodes using the same logical ID share one native reader.
@@ -115,7 +115,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### App / Process Started
 
-- **Action type:** `trigger.process_started`. Capability `trigger.process_started`. Medium risk.
+- **Action type:** `trigger.process_started`. Capability `trigger.process_started`. Permission `process.observe`. Medium risk.
 - **Configuration:** **Match by** process name, executable path, or window title. Required variable-aware **Target** using pre-trigger string values.
 - **Outputs:** process name, process ID, executable path, and window title where available.
 - **Platform:** window-title matching requires Windows Desktop. Other modes support compatible Windows/Linux targets.
@@ -136,6 +136,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Presence operator:** **Is null or missing** passes when a standalone variable reference has a null value or does not exist.
 - **Checks without a target:** empty, null or missing, boolean, and type checks inspect Value directly, so the editor does not show a Target field for them. Boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
 - **Simulation/runtime:** values are resolved with their types before comparison. A numeric variable or calculated result matches an equivalent numeric literal, so calculated `1.0` equals the literal `1`. Two text values still require exactly the same text. Inversion applies to one row before combinators.
+- **Regular expressions:** regex conditions use the shared linear-time Editor/Runner subset. Unsupported constructs and oversized patterns or inputs fail validation instead of running through the browser JavaScript regex engine.
 - **Example:** `{{status_code}} >= 400` routes errors to `true`.
 
 ### Color Match
@@ -214,7 +215,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
 - **Access:** runtime scope requires `variable.local.set` at Low risk, persistent requires `variable.persistent.set` at Medium risk, and global requires `variable.global.set` at High risk.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
-- **Validation:** names use letters, numbers, and underscores, cannot start with a number, and cannot use reserved prefixes.
+- **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. The `manifest_` and `system_` prefixes and the exact name `settings` are reserved.
 - **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
 - **Simulation:** updates current simulation state. Runner persistence must be tested separately.
 
@@ -243,6 +244,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text.
 - **Output:** the final value is available as `text` or `items` according to its type.
 - **Failure:** invalid regex, encoding, indexes, or an incompatible value type continues through `failed`.
+- **Regular expressions:** replacement patterns use the same bounded linear-time subset in the Editor and Runner. Simulation executes regex work outside the UI thread and can be cancelled.
 
 ### Parse URL
 
@@ -283,16 +285,36 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Output:** success/failure state.
 - **Simulation:** editor toast rather than native notification-center behavior.
 
-### MessageBox
+### Message Dialog
 
-- **Action type:** `action.message_box`. Capability `action.message_box`. Permission `messageBox.show`. Medium risk. Windows Desktop only. Fallible.
-- **Configuration:** type info/warning/error. Title. Message. Buttons OK, OK/Cancel, Yes/No, or Yes/No/Cancel.
-- **Output:** selected button plus success/failure data.
-- **Simulation:** modal inside the editor. Stop aborts a waiting selection.
+- **Action type:** `action.message_box`. Capability `action.message_box`. Permission `messageBox.show`. Medium risk. Windows Desktop and Linux Desktop. Fallible.
+- **Configuration:** variable-aware title and message, type Info/Warning/Error, window size, buttons OK, OK/Cancel, Cancel/Confirm, Yes/No, or Yes/No/Cancel, and an optional positive timeout from greater than `0` through `86400` seconds.
+- **Runtime:** opens a BaudBound desktop dialog while the main runner window stays responsive. Dialog requests are queued first-in, first-out, with one active request at a time. When Dialog Console mode is enabled, the active request is rendered in the persistent console instead of a transient window.
+- **Output:** `button` is `ok`, `cancel`, `confirm`, `yes`, `no`, or `timeout`. Non-timeout values exactly match a button from the configured set. Closing OK behaves as OK. Closing a set that contains Cancel behaves as Cancel. A Yes/No dialog must be answered explicitly and cannot be closed into an ambiguous result. A configured timeout is displayed as a countdown and returns `timeout` when it expires.
+- **Cancellation:** stopping the run, restarting the runner, or closing the runner cancels the waiting action. These are runtime cancellations, not button results.
+- **Simulation:** uses a blocking editor modal and returns the selected button. Stopping simulation aborts the wait.
+
+### Form Dialog
+
+- **Action type:** `action.form_dialog`. Capability `action.form_dialog`. Permission `formDialog.show`. Medium risk. Windows Desktop and Linux Desktop. Fallible.
+- **Common configuration:** required variable-aware window title, optional variable-aware description, an ordered draggable component list, and an optional positive timeout from greater than `0` through `86400` seconds. A form must contain from 1 through 50 components.
+- **Input components:** Text input, Password input, Multiline text, Number input, Checkbox, Single choice, Multi choice, Dropdown, Date, Time, Date and time, Color picker, File picker, Folder picker, and Slider. The editor shows only settings owned by the selected component type. Component types are selected when a component is added and cannot be changed afterward.
+- **Display components:** Information, Section heading, Divider, and Image. Information, Section heading, and Divider have configurable variable-aware accent colors. Images use packaged project image assets, support contain or cover fitting, and are limited to 8 MiB.
+- **Field keys:** every input component has a literal output key. Keys must be unique identifiers of at most 64 characters and use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. Display components have no key or output.
+- **Typed values:** Number and Slider return numbers; Checkbox returns a boolean; Multi choice and a multi-file File picker return lists; Color picker returns a normalized `#RRGGBB` color; File picker and Folder picker return filesystem paths; Date and Time return their displayed ISO-shaped values; Date and time returns an ISO 8601 UTC timestamp; the remaining inputs return text.
+- **Path selection:** the desktop runner opens an authenticated native operating-system picker. BaudBound does not restrict which files or folders the signed-in user can select. Canceling a picker leaves the existing value unchanged.
+- **Defaults and variables:** Text and Multiline defaults are variable-aware, while Password has no default value. Number defaults accept numeric variables and must resolve to a finite supported number. Date, Time, and Date and time defaults use either their literal picker or one complete `datetime` variable reference; string variables are rejected even when their text resembles a date. A typed datetime is displayed in local time for Date and Time; Date and time uses the component's configured timezone. Checkbox has a boolean default.
+- **Choices:** each choice has a variable-aware key and displayed value. The dialog shows only the displayed value and returns only the key. Both must resolve to non-empty unique text. Each choice component supports 1 through 100 choices, and multi-choice results preserve configured order rather than click order.
+- **Required values:** required text must not be empty, required numbers must be present and finite, required checkboxes must be checked, and required choice components need a selection. An optional blank number is omitted from `values`.
+- **Buttons and outputs:** every Form Dialog displays Cancel and Submit. `values` is an object whose typed fields are derived from component keys, `submitted` is true only after Submit, and `button` is `ok`, `cancel`, or `timeout`.
+- **Cancel and timeout:** Cancel, Escape, or window close returns `submitted=false`, `button="cancel"`, and an empty `values` object. Timeout returns the same empty values with `button="timeout"`. Stopping the runtime is a cancellation and produces no normal outputs.
+- **Password handling:** each submitted password field is transient sensitive data. It remains usable through its nested reference during the active run, but its value is redacted from logs and cannot be copied into persistent or global variables. The containing `values` output is omitted from retained run variables; non-secret sibling values can still be copied to ordinary downstream variables. This is an application window, not an operating-system secure desktop or credential vault; other software with desktop capture or input-monitoring access may still observe it.
+- **Validation boundary:** the editor, simulator, package schema, desktop renderer, and runner independently reject malformed components, duplicate keys, wrong variable and response types, unknown response fields, and values outside configured choices. Editor suggestions expose only compatible variable types, and whole-script verification blocks known type mismatches or typed references whose type cannot be established.
+- **Runtime and simulation:** dialog requests are queued first-in, first-out, with one active request at a time. Dialog Console mode uses its persistent window. Simulation uses a blocking editor form with the same component behavior, typed output shape, configured choice ordering, timeout behavior, and password redaction as the runner.
 
 ### Play Sound
 
-- **Action type:** `action.sound.play`. Capability `action.sound`. Permission `sound.play`. Medium risk. Desktop only. Fallible.
+- **Action type:** `action.sound.play`. Capability `action.sound`. Permission `sound.play` for package audio. A filesystem source also declares `file.read` for a bounded relative path or `file.read.any` for an unbounded path. Medium or Dangerous risk. Desktop only. Fallible.
 - **Configuration:** source package asset or file path and corresponding selected path.
 - **Output:** played source/path information and failure data.
 - **Simulation:** plays package audio in the browser. A runner filesystem path cannot be tested there.
@@ -309,7 +331,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Outputs:** status code/text, headers, body, optional parsed `json`, duration, or structured network error.
 - **Runtime:** native HTTP client behavior may differ from browser redirects, CORS, forbidden headers, cookies, and TLS stores.
 - **Private destinations:** the runner blocks loopback, private, link-local, and other non-public addresses by default. The operator must explicitly enable `security.policy.allow_private_http_requests` when an approved workflow needs them.
-- **Simulation:** sends a real browser `fetch`. Use a safe test endpoint.
+- **Simulation:** mock mode is the default and performs no network access or secret interpolation. Live mode requires per-run approval of the literal destination origins, then sends through the bounded Editor service with Runner-equivalent address, redirect, header, timeout, cancellation, and response-size policy.
 
 ### Webhook Response
 
@@ -393,6 +415,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Configuration:** variable-aware executable, arguments, optional working directory, and optional timeout from `1` to `86400` seconds, default `300`.
 - **Outputs:** process ID, exit code, success flag, captured standard output, captured standard error, or action error.
 - **Runtime:** uses native process APIs, not shell parsing. Arguments must match the target executable's contract.
+- **Program lookup:** a name without a path separator is looked up on `PATH`, so `git` works. The working directory is never searched, which stops a file placed there from being run in place of the intended program. To run a program from a specific directory, give a path such as `./tool.exe` or a full path.
 
 ### Process Status
 
@@ -410,9 +433,10 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ### Open Application
 
-- **Action type:** `action.application.open`. Capability `action.window`. Permission `application.open`. Medium risk. Desktop only. Fallible.
+- **Action type:** `action.application.open`. Capability `action.window`. Permission `process.run`. Dangerous risk. Desktop only. Fallible.
 - **Configuration:** variable-aware application name/ID/shortcut/desktop entry and arguments.
 - **Outputs:** resolved application ID and process ID when exposed.
+- **Authorization:** launching an application with arguments is process execution and is subject to the same dangerous-command policy as Run Process immediately before creation.
 - **Simulation:** returns sample IDs without opening an application.
 
 ### Get Active Window

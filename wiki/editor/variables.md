@@ -11,7 +11,9 @@ Variables carry data between triggers, actions, and control-flow nodes. BaudBoun
 {{status}}
 ```
 
-Variable-aware fields show matching suggestions after typing `{{`. Select a suggestion or press Tab to insert its complete token.
+Variable-aware fields show matching suggestions after typing `{{`. Select a suggestion or press Tab to insert its complete token. Suggestions are filtered by the field's declared type contract: numeric fields show numeric values, datetime fields show datetime values, and so on.
+
+The editor highlights known compatible references in green. A known reference with the wrong type is cyan and produces an inline validation error. Amber means the path may exist but its type cannot be established; typed fields reject that uncertainty, while fields that explicitly accept any value may use it. Red means the reference is unavailable. Whole-script verification repeats these checks and blocks simulation or export when a typed input is invalid.
 
 ## Choose the right data kind
 
@@ -46,7 +48,7 @@ Lists and objects embedded in text are serialized as compact JSON. Use a standal
 
 Whitespace inside a token is accepted by the runner, but the editor highlights it as a warning. Prefer the canonical form `{{status}}` rather than `{{ status }}`.
 
-An unknown reference is left unchanged as literal `{{name}}` text. This makes the failure visible instead of silently replacing it with an empty value, but it can also reach an action as unintended input. Resolve red tokens before export.
+An unknown reference is left unchanged as literal `{{name}}` text at runtime. This makes the failure visible instead of silently replacing it with an empty value. The editor marks it red and blocks verification so it cannot be exported accidentally.
 
 ## Nested data
 
@@ -70,7 +72,9 @@ Use Convert Value when an action returns the right content in the wrong type. Fo
 
 The Variables tab shows both the plain variable name and its `{{reference}}`. Both values can be selected, and each has its own copy button.
 
-Variable Operation creates and changes named user variables. Names must start with a letter or underscore and may contain only letters, numbers, and underscores. The `manifest_` and `system_` prefixes are reserved.
+Variable Operation creates and changes named user variables. Variable, Default Variable, Script Setting, and Secret names use the same portable identifier characters: letters `A-Z` or `a-z`, numbers `0-9`, hyphens, and underscores. No special first character is required. Spaces, dots, slashes, and other characters are rejected by the editor, package schema, and runner.
+
+The `manifest_` and `system_` prefixes are reserved, and the exact name `settings` is reserved for the Script Settings object. Names are case sensitive and must be unique within the declaration group that owns them.
 
 The selected scope controls ownership and lifetime:
 

@@ -160,7 +160,7 @@ Repository addresses do not belong in Import or Update. Add a `repository.json` 
 
 A remote package is downloaded into protected temporary storage. The runner validates it and displays its identity, version, SHA256, target, risk, permissions, and capabilities before installation. Installing does not approve, enable, or run it.
 
-Remote addresses must use public HTTPS destinations. The runner rejects credentials in URLs, unsafe redirects, local addresses, private network addresses, oversized responses, unexpected filenames, hash mismatches, reused versions with changed bytes, and downgrades.
+Remote addresses must use canonical public anonymous HTTPS destinations. Repository and package URLs cannot contain user information, a query, or a fragment, so signed download URLs are not supported. The runner also rejects credential-bearing request headers, unsafe redirects, local or private destinations, oversized responses, unexpected filenames, hash mismatches, reused versions with changed bytes, and downgrades. Every redirect is checked against the same rules.
 
 ## Browse and manage repositories
 
@@ -177,7 +177,7 @@ To add another repository:
 5. Review its name, description, address, and script count.
 6. Choose **Add repository** to confirm.
 
-Adding or refreshing a repository contacts its hosting server. The server can observe your public IP address and request time. BaudBound does not send script secrets, browser credentials, cookies, or private authentication headers.
+Adding or refreshing a repository contacts its hosting server. The server can observe your public IP address and request time. BaudBound does not send script secrets, browser credentials, `Authorization`, `Proxy-Authorization`, or `Cookie` headers.
 
 Enabled repositories refresh in the background when the desktop runner starts and after the configured update check interval has elapsed. The refresh runs outside the interface thread, so you can continue using BaudBound while it downloads and validates the repository.
 

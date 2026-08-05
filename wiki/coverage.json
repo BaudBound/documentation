@@ -31,8 +31,8 @@
         "sourceRoot": "editor",
         "sources": "data/nodes/definitions/**/*.ts",
         "page": "editor/node-reference",
-        "expectedCount": 53,
-        "sourceFingerprint": "e057e10a0a512d999dfb1274b03f195eb6e544a3bcc3ca83bbff2875ce27ac42"
+        "expectedCount": 54,
+        "sourceFingerprint": "a40f67b9e6663baab9ca3ce04407ec06f26cc467ea3fad5035f864f631c92825"
     },
     "desktop": {
         "sourceRoot": "runner",

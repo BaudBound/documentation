@@ -1,4 +1,4 @@
-﻿---
+---
 title: Approvals, Capabilities, and Risk
 description: Review BaudBound permissions, capabilities, calculated risk, policy gates, and per-revision approval.
 tags: [security, approval, permissions, capabilities, risk]
@@ -48,13 +48,16 @@ The runner derives permissions from executable action types and variable scopes.
 | `file.download` | Medium | Download network content to a file |
 | `file.move` | Medium | Move or rename a file |
 | `file.read` | Medium | Read a bounded relative file path |
+| `file.watch.limited` | Medium | Observe changes beneath a statically bounded script-workspace path |
 | `http.request` | Medium | Send an outbound HTTP request |
 | `messageBox.show` | Medium | Display an interactive desktop dialog |
 | `notification.show` | Medium | Display a desktop notification |
+| `formDialog.show` | Medium | Interrupt the desktop user with a configured form or confirmation dialog |
 | `process.query` | Medium | Inspect process state |
+| `process.observe` | Medium | Observe process-start metadata for a configured Process Started trigger |
 | `screen.pixel.read` | Medium | Read a screen pixel on supported desktops |
 | `serial.write` | Medium | Send data to a configured serial device |
-| `sound.play` | Medium | Play package or filesystem audio |
+| `sound.play` | Medium | Play audio bundled in the package |
 | `variable.persistent.set` | Medium | Store script data between runs |
 | `websocket.write` | Medium | Write to a connection associated with a WebSocket run |
 | `window.query` | Medium | Read active-window information |
@@ -73,15 +76,22 @@ The runner derives permissions from executable action types and variable scopes.
 | `window.focus` | High | Change foreground-window focus |
 | `file.delete.any` | Dangerous | Permanently remove a file at an unbounded path |
 | `file.read.any` | Dangerous | Read from an absolute, sensitive, parent-traversing, or runtime-selected path |
+| `file.watch.any` | Dangerous | Observe an absolute, sensitive, parent-traversing, or runtime-selected path |
 | `file.write.any` | Dangerous | Write to an absolute, sensitive, parent-traversing, or runtime-selected path |
 | `process.run` | Dangerous | Start an executable with arguments, wait for completion, and capture its output |
 | `process.shell` | Dangerous | Execute a command through a shell interpreter |
 
-Trigger nodes such as Manual, Schedule, File Watch, Hotkey, and Process Started can be permissionless while still declaring machine-checkable capabilities and requiring service prerequisites.
+Manual, Schedule, and Hotkey triggers do not need an additional user-data observation permission. File Watch requires `file.watch.limited` when its configured path is provably bounded to the script workspace and `file.watch.any` when it is absolute, sensitive, parent-traversing, runtime-selected, or otherwise cannot be proven bounded. Process Started requires `process.observe` because it continuously inspects process metadata.
+
+The editor resolves statically knowable trigger inputs before deriving these permissions. If a path depends on data that cannot be proven at package-validation time, derivation fails toward `file.watch.any`; it never silently treats an unknown path as limited. The runner independently derives and enforces the same result before registration.
 
 File permissions depend on the configured path. A bounded relative path uses `file.read`, `file.write.limited`, or `file.delete.limited`. It resolves inside `workspaces/SCRIPT_ID` under the runner home, giving each installed script its own limited workspace. Parent traversal and symbolic-link components that escape this directory are rejected.
 
 An absolute path, a sensitive system location, a path containing runtime variables, or another path whose location cannot be proved in advance requires `file.read.any`, `file.write.any`, or `file.delete.any` according to the operation. Copy and Move also declare `file.copy` or `file.move`. Download declares `file.download`. These permissions do not prevent an approved script from using the selected path. They make the broader access explicit during review.
+
+Play Sound follows the same rules when its source is a filesystem path. Audio bundled in the package needs only `sound.play`. Reading audio from the filesystem is a file read, so a bounded relative path also declares `file.read` and an absolute path also declares `file.read.any` at Dangerous risk.
+
+Windows adds three forms that cannot stay inside the workspace, so they are treated as unbounded on every platform. A drive-relative path such as `C:report.txt` resolves against that drive's current directory. An alternate data stream such as `notes.txt:hidden` writes to a hidden stream of another file. A reserved device name such as `CON` or `COM1` resolves to a device wherever it appears. A package built on Linux can be installed on Windows, so these classify the same way on both.
 
 ## Capability reference
 
@@ -92,7 +102,7 @@ Capabilities describe runtime subsystems, not user consent by themselves. Curren
 | Action and data | `action.calculate`, `action.delay`, `action.log`, `action.text`, `action.value`, `runtime.variables`, `runtime.persistent_storage`, `runtime.secrets` |
 | Files and network clients | `action.file`, `action.http` |
 | Processes and scripts | `action.process`, `action.sub_script` |
-| Desktop | `action.clipboard`, `action.keyboard`, `action.message_box`, `action.mouse`, `action.notification`, `action.pixel`, `action.sound`, `action.window` |
+| Desktop | `action.clipboard`, `action.keyboard`, `action.message_box`, `action.mouse`, `action.notification`, `action.pixel`, `action.sound`, `action.form_dialog`, `action.window` |
 | Serial | `action.serial`, `trigger.serial_input` |
 | Network replies/listeners | `action.webhook_response`, `action.websocket`, `trigger.webhook`, `trigger.websocket` |
 | Control flow | `runtime.break_loop`, `runtime.color_match`, `runtime.continue_loop`, `runtime.for_each`, `runtime.if`, `runtime.repeat`, `runtime.switch`, `runtime.while` |
@@ -159,7 +169,9 @@ The operator controls four independent switches under `[security.policy]`:
 
 Shell commands must pass both the shell-specific setting and the Dangerous-permission setting. A current approval does not bypass these checks. Policy is applied during inspection, import, approval, trigger registration, and execution. A blocked script reports the exact setting involved.
 
-The first three settings default to `true` so an update does not silently disable packages that a user already reviewed. `allow_private_http_requests` defaults to `false` to block server-side request forgery into local services and private networks. Set a switch to the narrowest value that supports the machine's intended workflows. Policy is defense in depth. It must not be used to make package declarations inaccurate, and a package or repository cannot change it.
+All four settings default to `false`. A capability is unavailable until you enable it, so approving a package is not enough on its own while its matching setting is off. The first time a script needs one, it is blocked and the error names the setting to change.
+
+Enable only what a script you trust actually needs, and leave the rest disabled. Policy is defense in depth. It must not be used to make package declarations inaccurate, and a package or repository cannot change it.
 
 ## Operator review checklist
 
