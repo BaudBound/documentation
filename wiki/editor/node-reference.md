@@ -230,10 +230,16 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Convert Value
 
 - **Action type:** `action.value.convert`. Capability `action.value`. Permission `value.convert`. Low risk. Fallible.
-- **Configuration:** a variable-aware **Value** and a target type of text, number, integer, boolean, list, or object.
+- **Configuration:** a variable-aware **Value** and a target type of `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `keyboard_key`, `datetime`, or `duration`.
+- **Null:** `null` is rejected for every target. An unset variable or a missing object field resolves to `null`.
+- **String rules:** accepts any non-null value. An existing string passes through unchanged, and every other type is converted to its JSON text form.
 - **Integer rules:** the value must already be a whole number within the safe integer range. Convert Value does not round decimal values.
+- **Float rules:** accepts an integer, a float, or non-empty numeric text. The result always renders with a decimal point.
 - **Boolean rules:** accepts a boolean value or the text `true` or `false` without regard to letter case.
 - **List and object rules:** accepts an existing value of the selected type or JSON text whose top-level value has the selected type.
+- **Color and keyboard key rules:** accepts only text, checked against the same [color](variables.md#variable-types) or [keyboard key](#supported-windows-node-keys) rule as the matching variable type.
+- **Datetime rules:** accepts an existing datetime value, or a bare RFC 3339 string, which is wrapped into the datetime object automatically.
+- **Duration rules:** accepts only an existing duration value. There is no conversion from a plain number or text.
 - **Output:** `value`, `source_type`, and `target_type` on success. Structured error details are available from `failed`.
 
 ### Text Transform

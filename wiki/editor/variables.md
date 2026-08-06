@@ -36,11 +36,57 @@ A Script Setting, a default variable, a Variable Operation value, and a node's R
 
 ### Integer and float are separate types
 
-`integer` and `float` are both numbers, but they do not mix. `42` is an integer, not a float. `3.7` is a float, not an integer. Moving a value from one to the other needs a cast. Cast syntax is not covered on this page because it ships with its own upcoming feature.
+`integer` and `float` are both numbers, but they do not mix. `42` is an integer, not a float. `3.7` is a float, not an integer. Moving a value from one to the other needs a cast. See [Casting a value to another type](#casting-a-value-to-another-type) for the exact syntax.
 
 A number produced outside the script carries the sender's type, and the editor cannot know which type it will be at design time. An HTTP response body `{"count": 3}` produces an integer. The same field sent as `{"count": 3.0}` produces a float. A value read from an HTTP response, a webhook payload, or a Form Dialog number field usually needs a cast before it can be compared against or stored as the other numeric type.
 
 Numeric config fields are exactly typed for the same reason. A field that takes a float, such as the Beep node's frequency, accepts only a float variable. A field that takes an integer, such as Repeat's count, accepts only an integer variable. A cast is how an author bridges the two.
+
+### Casting a value to another type
+
+Add `|target` inside the braces to convert a value to a different type before it is used:
+
+```text
+{{name|target}}
+```
+
+`target` is one of the ten types: `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `keyboard_key`, `datetime`, or `duration`. A cast can be used anywhere a reference is used, including inside a longer string:
+
+```text
+https://spools.example.com/api/v1/spool/{{spool_number|string}}
+{{payload.count|integer}}
+```
+
+`{{x|float}}` is how an integer becomes a float. `{{x|integer}}` is how a whole float becomes an integer. `3.7` has no whole number to become, so casting it to `integer` fails.
+
+`null` fails every target without exception. An unset variable and a missing object field both resolve to `null`, so casting either one always fails instead of silently producing an empty string or a placeholder value.
+
+| Target | Accepts | Rejects |
+| --- | --- | --- |
+| `string` | Any non-null value, serialized to text unless it is already a string | `null` |
+| `integer` | An integer, a float with no fractional part, or text that parses as one of those | `null`, a fractional value, a value outside the integer range above, or non-numeric text |
+| `float` | An integer, a float, or non-empty numeric text | `null`, non-numeric text, or a value that is not finite |
+| `boolean` | `true`, `false`, or the text `"true"` or `"false"` in any letter case | `null`, any other text, a number, a list, or an object |
+| `list` | An existing list, or text that parses as a JSON array | `null`, or a value that does not resolve to a list |
+| `object` | An existing object, or text that parses as a JSON object | `null`, or a value that does not resolve to an object |
+| `color` | Text satisfying the `color` rule above | `null`, a value that is not text, or text that fails the rule |
+| `keyboard_key` | Text satisfying the `keyboard_key` rule above | `null`, a value that is not text, or text that fails the rule |
+| `datetime` | An existing datetime value, or a bare RFC 3339 string wrapped into the datetime object automatically | `null`, text that is not a valid date, or any other shape |
+| `duration` | An existing duration value | `null`, or any other shape |
+
+Duration accepts only a value already shaped like the object above. There is no conversion from a plain number or a unit name into a duration.
+
+A failed cast stops the run. It does not take the node's `failed` output, there is no retry, and there is no fallback value. This is checked before the node runs, so a failed cast on an HTTP Request node's URL sends no request, and a failed cast on a Write File node's content writes no file.
+
+> A cast in a webhook or schedule driven script turns one bad payload into a stopped run. There is no failure branch to catch it. Use Convert Value instead when the source of a value cannot be trusted to already have the right type.
+{.is-warning}
+
+Choose between the two based on whether a failure should be handled or should stop the run:
+
+| | Convert Value node | Inline cast |
+| --- | --- | --- |
+| Failure | Takes the failure output, which you can branch on | Stops the run |
+| Use when | The value may legitimately be wrong | The value must be right |
 
 ### A float always renders with a decimal
 
