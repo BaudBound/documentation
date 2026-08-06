@@ -88,7 +88,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Hotkey
 
 - **Action type:** `trigger.hotkey`. Capability `trigger.hotkey`. Medium risk. Windows Desktop only.
-- **Configuration:** choose **Literal key** to capture a chord or **Variable** to select a pre-trigger `hotkey` Script Setting. The variable selector shows only compatible hotkey values and displays the setting name without requiring braces. A single literal key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
+- **Configuration:** choose **Literal key** to capture a chord or **Variable** to select a pre-trigger `keyboard_key` Script Setting. The variable selector shows only compatible keyboard key values and displays the setting name without requiring braces. A single literal key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
 - **Output:** canonical `key` expression and timestamp.
 - **Use:** start a script when the complete physical key chord is held while the Windows desktop background runner is active.
 - **Matching:** the held keys must match the configured chord exactly. The run starts when the final required key is pressed, regardless of the order in which the keys were pressed. Holding the chord does not repeatedly start runs.
@@ -223,7 +223,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 - **Action type:** `action.calculate`. Capability `action.calculate`. Permission `calculate`. Low risk. Fallible.
 - **Configuration:** variable-aware numeric **Expression**. The editor requires a valid supported formula and rejects arbitrary text before simulation or export.
-- **Output:** `result` number on success. Structured error on failure.
+- **Output:** `result` float on success. Structured error on failure.
 - **Use:** arithmetic supported by the runtime expression evaluator, not arbitrary code.
 - **Simulation:** evaluates with current values using the same supported expression rules.
 
@@ -301,9 +301,9 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Input components:** Text input, Password input, Multiline text, Number input, Checkbox, Single choice, Multi choice, Dropdown, Date, Time, Date and time, Color picker, File picker, Folder picker, and Slider. The editor shows only settings owned by the selected component type. Component types are selected when a component is added and cannot be changed afterward.
 - **Display components:** Information, Section heading, Divider, and Image. Information, Section heading, and Divider have configurable variable-aware accent colors. Images use packaged project image assets, support contain or cover fitting, and are limited to 8 MiB.
 - **Field keys:** every input component has a literal output key. Keys must be unique identifiers of at most 64 characters and use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. Display components have no key or output.
-- **Typed values:** Number and Slider return numbers; Checkbox returns a boolean; Multi choice and a multi-file File picker return lists; Color picker returns a normalized `#RRGGBB` color; File picker and Folder picker return filesystem paths; Date and Time return their displayed ISO-shaped values; Date and time returns an ISO 8601 UTC timestamp; the remaining inputs return text.
+- **Typed values:** Number and Slider return floats; Checkbox returns a boolean; Multi choice and a multi-file File picker return lists; Color picker returns a normalized `#RRGGBB` color; File picker and Folder picker return filesystem paths as text; Date and Time return their displayed ISO-shaped values; Date and time returns an ISO 8601 UTC timestamp; the remaining inputs return text.
 - **Path selection:** the desktop runner opens an authenticated native operating-system picker. BaudBound does not restrict which files or folders the signed-in user can select. Canceling a picker leaves the existing value unchanged.
-- **Defaults and variables:** Text and Multiline defaults are variable-aware, while Password has no default value. Number defaults accept numeric variables and must resolve to a finite supported number. Date, Time, and Date and time defaults use either their literal picker or one complete `datetime` variable reference; string variables are rejected even when their text resembles a date. A typed datetime is displayed in local time for Date and Time; Date and time uses the component's configured timezone. Checkbox has a boolean default.
+- **Defaults and variables:** Text and Multiline defaults are variable-aware, while Password has no default value. Number defaults accept float variables and must resolve to a finite supported number. Date, Time, and Date and time defaults use either their literal picker or one complete `datetime` variable reference; string variables are rejected even when their text resembles a date. A typed datetime is displayed in local time for Date and Time; Date and time uses the component's configured timezone. Checkbox has a boolean default.
 - **Choices:** each choice has a variable-aware key and displayed value. The dialog shows only the displayed value and returns only the key. Both must resolve to non-empty unique text. Each choice component supports 1 through 100 choices, and multi-choice results preserve configured order rather than click order.
 - **Required values:** required text must not be empty, required numbers must be present and finite, required checkboxes must be checked, and required choice components need a selection. An optional blank number is omitted from `values`.
 - **Buttons and outputs:** every Form Dialog displays Cancel and Submit. `values` is an object whose typed fields are derived from component keys, `submitted` is true only after Submit, and `button` is `ok`, `cancel`, or `timeout`.
@@ -482,7 +482,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Keyboard
 
 - **Action type:** `action.keyboard`. Capability `action.keyboard`. Permission `keyboard.control`. High risk. Windows Desktop only. Fallible.
-- **Configuration:** choose an input action and either a literal key chord or a compatible `hotkey` Script Setting. Literal mode can capture keys or use the key reference buttons. Variable mode lists only compatible settings and displays the setting name without requiring braces. Separate literal chord members with `+`, for example `G`, `F1`, `K+L`, or `Ctrl+Shift+S`.
+- **Configuration:** choose an input action and either a literal key chord or a compatible `keyboard_key` Script Setting. Literal mode can capture keys or use the key reference buttons. Variable mode lists only compatible settings and displays the setting name without requiring braces. Separate literal chord members with `+`, for example `G`, `F1`, `K+L`, or `Ctrl+Shift+S`.
 - **Supported keys:** uses the same [Supported Windows node keys](#supported-windows-node-keys) as the Hotkey trigger. Unsupported names are rejected instead of being guessed.
 - **Platform:** Windows Desktop only.
 - **Output:** the normalized key expression, the performed input action, or an error.
