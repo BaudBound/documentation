@@ -36,6 +36,14 @@ Open **Config** and use **Simple** mode. Save is disabled until values pass UI v
 
 Use **Advanced** only when you need the raw document. Invalid TOML is rejected and does not replace the last valid configuration. **Reload** discards unsaved edits.
 
+### What a save changes
+
+Saving from **Simple** mode writes values into the existing file rather than rewriting it. Comments, blank lines, and the order you arranged settings in all survive, whether they came with the file or you wrote them yourself. Only the values change.
+
+Comments are never added back once removed. A file that has lost its explanatory comments regains them from **Reset**, which replaces the file with the fully commented template.
+
+Every setting stays in the file at all times. Clearing an optional value such as `serial_number` writes an empty string rather than deleting the key, so a setting never disappears from the file when it is switched off. An empty optional value and an absent one mean the same thing to the runner.
+
 ### Headless
 
 Print a complete current template:
