@@ -42,6 +42,8 @@ A number produced outside the script carries the sender's type, and the editor c
 
 Numeric config fields are exactly typed for the same reason. A field that takes a float, such as the Beep node's frequency, accepts only a float variable. A field that takes an integer, such as Repeat's count, accepts only an integer variable. A cast is how an author bridges the two.
 
+When the type is not known until the script runs, an If/Else or While condition can test it. **Is integer** passes for a whole number, **Is float** passes for a fractional one, and **Is numeric** passes for either. These read the type of the value, so text that reads as a number is still text. Cast the value first to test it as a number.
+
 ### Casting a value to another type
 
 Add `|target` inside the braces to convert a value to a different type before it is used:
