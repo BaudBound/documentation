@@ -44,6 +44,8 @@ Numeric config fields are exactly typed for the same reason. A field that takes 
 
 When the type is not known until the script runs, an If/Else or While condition can test it. **Is integer** passes for a whole number, **Is float** passes for a fractional one, and **Is numeric** passes for either. These read the type of the value, so text that reads as a number is still text. Cast the value first to test it as a number.
 
+A value read out of an object or a list has no type until the script runs, so it needs a cast before a typed field accepts it. See [Nested data](#nested-data).
+
 ### Casting a value to another type
 
 Add `|target` inside the braces to convert a value to a different type before it is used:
@@ -150,6 +152,18 @@ Use dot-separated paths to read object fields and zero-based list indexes:
 ```
 
 Reading paths use numeric dot segments such as `.0`. Bracket notation is reserved for the Variable Operation node's **Set object field** path, where paths such as `users[0].name` are supported.
+
+### A nested read needs a cast
+
+An HTTP Request node's `json` output is an `object`, and so is a webhook payload. Nothing can know the type of a field inside one until the data arrives, so a nested read carries no type of its own and a typed field will not accept it. The editor reports this as a type that is only known when the script runs.
+
+A cast is how you say what the field holds:
+
+```text
+{{n-mr3zyt6f-12.json.ip|string}}
+```
+
+The cast is checked like any other, so a field that takes a string still refuses `{{n-mr3zyt6f-12.json.ip|integer}}`. A cast that turns out not to match at run time stops the run, so prefer Convert Value when the payload comes from a source you do not control. See [Casting a value to another type](#casting-a-value-to-another-type).
 
 References retrieve data. They do not evaluate arithmetic or arbitrary expressions. Use Calculate for mathematics and Format Text for text transformations.
 
