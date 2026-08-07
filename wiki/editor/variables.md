@@ -15,6 +15,97 @@ Variable-aware fields show matching suggestions after typing `{{`. Select a sugg
 
 The editor highlights known compatible references in green. A known reference with the wrong type is cyan and produces an inline validation error. Amber means the path may exist but its type cannot be established; typed fields reject that uncertainty, while fields that explicitly accept any value may use it. Red means the reference is unavailable. Whole-script verification repeats these checks and blocks simulation or export when a typed input is invalid.
 
+## Variable types
+
+Every variable, Script Setting, and node output uses one of ten types. Matching is exact. A value must be exactly the declared type. A color is not usable where a string is required, and an integer is not usable where a float is required.
+
+| Type | Accepts | Rejects |
+| --- | --- | --- |
+| `string` | Any text | A number, a boolean, a list, or an object |
+| `integer` | A whole number from -9007199254740991 through 9007199254740991 | A fractional number, or text such as `"42"` |
+| `float` | A number that can include a fractional part | A whole number produced as an integer |
+| `boolean` | `true` or `false` | Text such as `"true"` |
+| `object` | A JSON object | A JSON array |
+| `list` | A JSON array | A JSON object |
+| `color` | Six digit hex text such as `#2F80ED`, case insensitive | A three digit hex code, or a named color such as `red` |
+| `hotkey` | A key or chord validated against the [shared Windows key contract](node-reference.md#supported-windows-node-keys), such as `F5` or `Ctrl+S` | An unknown key name, an empty expression, or a repeated key |
+| `datetime` | An object with `type: "datetime"` and an RFC 3339 `value` | A bare date string without the surrounding object |
+| `duration` | An object with `type: "duration"`, a `unit`, and a numeric `value` | An object that is missing its `unit` |
+
+A Script Setting, a default variable, a Variable Operation value, and a node's Runtime Data all read and write this same ten type vocabulary. A value produced by one can be declared or compared against another without translation.
+
+### Integer and float are separate types
+
+`integer` and `float` are both numbers, but they do not mix. `42` is an integer, not a float. `3.7` is a float, not an integer. Moving a value from one to the other needs a cast. See [Casting a value to another type](#casting-a-value-to-another-type) for the exact syntax.
+
+A number produced outside the script carries the sender's type, and the editor cannot know which type it will be at design time. An HTTP response body `{"count": 3}` produces an integer. The same field sent as `{"count": 3.0}` produces a float. A value read from an HTTP response, a webhook payload, or a Form Dialog number field usually needs a cast before it can be compared against or stored as the other numeric type.
+
+Numeric config fields are exactly typed for the same reason. A field that takes a float, such as the Beep node's frequency, accepts only a float variable. A field that takes an integer, such as Repeat's count, accepts only an integer variable. A cast is how an author bridges the two.
+
+When the type is not known until the script runs, an If/Else or While condition can test it. **Is integer** passes for a whole number, **Is float** passes for a fractional one, and **Is numeric** passes for either. These read the type of the value, so text that reads as a number is still text. Cast the value first to test it as a number.
+
+A value read out of an object or a list has no type until the script runs, so it needs a cast before a typed field accepts it. See [Nested data](#nested-data).
+
+### Casting a value to another type
+
+Add `|target` inside the braces to convert a value to a different type before it is used:
+
+```text
+{{name|target}}
+```
+
+`target` is one of the ten types: `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `hotkey`, `datetime`, or `duration`. A cast can be used anywhere a reference is used, including inside a longer string:
+
+```text
+https://spools.example.com/api/v1/spool/{{spool_number|string}}
+{{payload.count|integer}}
+```
+
+`{{x|float}}` is how an integer becomes a float. `{{x|integer}}` is how a whole float becomes an integer. `3.7` has no whole number to become, so casting it to `integer` fails.
+
+`null` fails every target without exception. An unset variable and a missing object field both resolve to `null`, so casting either one always fails instead of silently producing an empty string or a placeholder value.
+
+| Target | Accepts | Rejects |
+| --- | --- | --- |
+| `string` | Any non-null value, serialized to text unless it is already a string | `null` |
+| `integer` | An integer, a float with no fractional part, or text that parses as one of those | `null`, a fractional value, a value outside the integer range above, or non-numeric text |
+| `float` | An integer, a float, or non-empty numeric text | `null`, non-numeric text, or a value that is not finite |
+| `boolean` | `true`, `false`, or the text `"true"` or `"false"` in any letter case | `null`, any other text, a number, a list, or an object |
+| `list` | An existing list, or text that parses as a JSON array | `null`, or a value that does not resolve to a list |
+| `object` | An existing object, or text that parses as a JSON object | `null`, or a value that does not resolve to an object |
+| `color` | Text satisfying the `color` rule above | `null`, a value that is not text, or text that fails the rule |
+| `hotkey` | Text satisfying the `hotkey` rule above | `null`, a value that is not text, or text that fails the rule |
+| `datetime` | An existing datetime value, or a bare RFC 3339 string wrapped into the datetime object automatically | `null`, text that is not a valid date, or any other shape |
+| `duration` | An existing duration value | `null`, or any other shape |
+
+Duration accepts only a value already shaped like the object above. There is no conversion from a plain number or a unit name into a duration.
+
+A failed cast stops the run. It does not take the node's `failed` output, there is no retry, and there is no fallback value. This is checked before the node runs, so a failed cast on an HTTP Request node's URL sends no request, and a failed cast on a Write File node's content writes no file.
+
+> A cast in a webhook or schedule driven script turns one bad payload into a stopped run. There is no failure branch to catch it. Use Convert Value instead when the source of a value cannot be trusted to already have the right type.
+{.is-warning}
+
+Choose between the two based on whether a failure should be handled or should stop the run:
+
+| | Convert Value node | Inline cast |
+| --- | --- | --- |
+| Failure | Takes the failure output, which you can branch on | Stops the run |
+| Use when | The value may legitimately be wrong | The value must be right |
+
+### A float always renders with a decimal
+
+Interpolating a float into text always includes a decimal point, even when the value is a whole number. A float variable holding `42` renders as `42.0`. A URL built from `/spool/{{spool_number}}` produces `/spool/42.0` when `spool_number` is a float. Use an integer, or cast the value, when the destination expects bare digits.
+
+### Arithmetic preserves the type
+
+Incrementing preserves the type it started with. An integer that increments by a whole amount stays an integer, so a counter that starts at `0` and increments by `1` each run renders `3`, not `3.0`. A missing counter starts from integer `0`. Incrementing by a fractional amount produces a float. Calculate always produces a float, because its expression evaluator works in floating point regardless of the operands.
+
+### A declared float may hold a whole value
+
+A default variable or Script Setting declared `float` accepts a whole value such as `300` or `300.0`, and holds it as a float. The type written beside the value is what settles it, the same way a typed language reads `300` into a variable declared as a decimal number.
+
+This applies only where a value is declared next to its type. A value flowing through a run still has one exact type, and there a whole number is an integer, not a float: `{{count}}` holding `300` fails **Is float** and passes **Is integer**. Cast it with `{{count|float}}` to move it across.
+
 ## Choose the right data kind
 
 | Need | Use | Why |
@@ -62,6 +153,18 @@ Use dot-separated paths to read object fields and zero-based list indexes:
 
 Reading paths use numeric dot segments such as `.0`. Bracket notation is reserved for the Variable Operation node's **Set object field** path, where paths such as `users[0].name` are supported.
 
+### A nested read needs a cast
+
+An HTTP Request node's `json` output is an `object`, and so is a webhook payload. Nothing can know the type of a field inside one until the data arrives, so a nested read carries no type of its own and a typed field will not accept it. The editor reports this as a type that is only known when the script runs.
+
+A cast is how you say what the field holds:
+
+```text
+{{n-mr3zyt6f-12.json.ip|string}}
+```
+
+The cast is checked like any other, so a field that takes a string still refuses `{{n-mr3zyt6f-12.json.ip|integer}}`. A cast that turns out not to match at run time stops the run, so prefer Convert Value when the payload comes from a source you do not control. See [Casting a value to another type](#casting-a-value-to-another-type).
+
 References retrieve data. They do not evaluate arithmetic or arbitrary expressions. Use Calculate for mathematics and Format Text for text transformations.
 
 Use Convert Value when an action returns the right content in the wrong type. For example, it can convert the text `42` to a number or JSON text to a list or object.
@@ -92,18 +195,20 @@ A stored variable is loaded at run start when the script contains a Variable Ope
 
 Open **Settings**, then choose **Default Variables**. This section defines typed starting values that are saved in the `.bbs` package. The bottom **Variables** tab remains a read only view of values that can exist during a run.
 
-Every default variable must have an explicit value. String and file path defaults cannot be blank, while values such as `false`, `0`, an empty list, and an empty object are valid explicit defaults. The editor changes to match the selected type:
+Every default variable must have an explicit value. String, color, and hotkey defaults cannot be blank, while values such as `false`, `0`, an empty list, and an empty object are valid explicit defaults. The editor changes to match the selected type:
 
 | Type | Editor |
 | --- | --- |
 | `string` | Resizable text field |
-| `number` | Number field that accepts only finite values |
+| `integer` | Number field that accepts only whole values |
+| `float` | Number field that accepts finite values, including fractions |
 | `boolean` | `true` or `false` selector |
 | `object` | JSON editor with line numbers |
 | `list` | Item type selector and ordered item rows |
+| `color` | Color picker and text field restricted to `#RRGGBB` |
+| `hotkey` | Captures a canonical Windows key or chord such as `Ctrl+Shift+F8` |
 | `datetime` | Local date and time field stored in RFC 3339 format |
 | `duration` | Amount field and unit selector |
-| `file_path` | Path text field |
 
 Every list has one declared item type. All items must use that type. A list cannot contain another list directly. Use objects when nested data is needed.
 
@@ -126,14 +231,9 @@ Default values are ordinary package data. Anyone who receives the package can re
 
 Open **Settings**, then choose **Script Settings**. A Script Setting is a package declaration that a runner user can configure without changing the script graph.
 
-Each declaration contains a name, type, description, required option, optional package default, and optional simulation override. Script Settings support every Default Variable type plus two setting-only types:
+Each declaration contains a name, type, description, required option, optional package default, and optional simulation override. Script Settings use the same ten types as default variables.
 
-| Setting-only type | Editor and validation |
-| --- | --- |
-| `hotkey` | Captures a canonical Windows key or chord such as `Ctrl+Shift+F8` |
-| `color` | Color picker and text field restricted to `#RRGGBB` |
-
-Use `hotkey` when a Hotkey trigger or Keyboard action should be configurable on each runner. Those node fields offer Literal key and Variable modes and list only compatible hotkey settings. Use `color` for configurable color comparisons. A color setting used in Color Match updates the field's color swatch after the variable resolves.
+Use `hotkey` when a Hotkey trigger or Keyboard action should be configurable on each runner. Those node fields offer Literal key and Variable modes and list only compatible `hotkey` settings. Use `color` for configurable color comparisons. A color setting used in Color Match updates the field's color swatch after the variable resolves.
 
 Use the setting through the read only `settings` object:
 
@@ -213,20 +313,9 @@ Simulation values are entered explicitly in the Secrets panel, remain in memory 
 
 See [Secrets](../runner/secrets.md) for runner configuration and lifecycle commands.
 
-## Default Variable and Variable Operation types
+## Datetime and duration values
 
-| Type | Accepted value | Empty value after Clear |
-| --- | --- | --- |
-| `string` | Plain text | Empty string |
-| `number` | Finite number | `0` |
-| `boolean` | `true` or `false` | `false` |
-| `list` | Ordered values that all use one declared item type | `[]` |
-| `object` | JSON object | `{}` |
-| `file_path` | Non-empty path string | Empty string |
-| `datetime` | Date and time stored as RFC 3339 | Unix epoch |
-| `duration` | Object containing `type: "duration"`, a `unit`, and numeric `value` | Zero-second duration object |
-
-Structured examples:
+Both are structured objects rather than plain strings or numbers. See [Variable types](#variable-types) for their required fields.
 
 ```json
 { "type": "datetime", "value": "2026-07-11T12:00:00Z" }
@@ -238,7 +327,7 @@ New datetime values start with the current date and time. The timezone selector 
 { "type": "duration", "unit": "seconds", "value": 10 }
 ```
 
-Node outputs can use additional specialized types such as HTTP responses, file content, HTTP headers, status codes, process IDs, and exit codes. These runtime output types cannot be selected for a Default Variable, Script Setting, or Variable Operation. `hotkey` and `color` are Script Setting types only. They cannot be selected for Default Variables or Variable Operation. The Runtime Data panel identifies the exact type produced by each node.
+Node outputs use the same ten types as default variables, Script Settings, and Variable Operations. The Runtime Data panel identifies the exact type produced by each node.
 
 ## Variable operations
 
@@ -257,7 +346,7 @@ Node outputs can use additional specialized types such as HTTP responses, file c
 
 Only **Set** asks for a variable type. A Set operation for a list also asks for the one item type used by that list. Fixed operations derive their required type from the operation. Clear derives the type from the existing value. Append infers the item type from the value and existing list, while Remove matching list items uses exact value and type equality.
 
-Operations that need input accept either a typed value or a variable reference. Text, number, object, and file path inputs use the same code editor for both forms. Other typed inputs provide a **Raw value** source for variable references. The runner validates each resolved value before changing runtime or stored state.
+Operations that need input accept either a typed value or a variable reference. Text, integer, float, and object inputs use the same code editor for both forms. Other typed inputs provide a **Raw value** source for variable references. The runner validates each resolved value before changing runtime or stored state.
 
 ## Derived metadata
 

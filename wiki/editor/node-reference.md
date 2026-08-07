@@ -52,7 +52,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Schedule
 
 - **Action type:** `trigger.schedule`. Capability `trigger.schedule`. Low risk.
-- **Configuration:** required variable-aware **Every** positive number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resolved interval must be at least one millisecond.
+- **Configuration:** required variable-aware **Every** positive whole number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resolved interval must be at least one millisecond. A fraction is refused rather than rounded; choose a smaller unit for a shorter interval, so half a second is `500` milliseconds.
 - **Output:** runner payload includes interval and due-time information. Graph continues through `out`.
 - **Use:** recurring work while a background service is active.
 - **Runtime:** unchanged registrations preserve due timing across reload. Missed intervals are counted without dispatching every missed occurrence. Millisecond schedules use operating-system timers and are not hard real-time guarantees.
@@ -132,7 +132,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Text operators:** equality, ordering, contains, prefix, suffix, regular expression, and case insensitive equality or contains checks.
 - **Number range:** **Is between** passes when Value is equal to the start value, equal to the end value, or anywhere between them. The start must be less than or equal to the end.
 - **Collection operators:** **has key** checks an object key. **contains item** checks a list item.
-- **Type operators:** **Is numeric**, **Is string**, **Is boolean**, **Is list**, and **Is object** check the resolved value type. **Is numeric** also accepts text that contains only a valid finite number.
+- **Type operators:** **Is numeric**, **Is integer**, **Is float**, **Is string**, **Is boolean**, **Is list**, and **Is object** check the type of the resolved value. **Is integer** passes for a whole number and **Is float** passes for a fractional one, so **Is numeric** passes for either. Text that reads as a number is still text. `"42"` passes **Is string** and fails **Is numeric**. Cast the value first to test it as a number.
 - **Presence operator:** **Is null or missing** passes when a standalone variable reference has a null value or does not exist.
 - **Checks without a target:** empty, null or missing, boolean, and type checks inspect Value directly, so the editor does not show a Target field for them. Boolean checks match only real boolean values. Text such as `"true"` and `"false"` does not match.
 - **Simulation/runtime:** values are resolved with their types before comparison. A numeric variable or calculated result matches an equivalent numeric literal, so calculated `1.0` equals the literal `1`. Two text values still require exactly the same text. Inversion applies to one row before combinators.
@@ -223,17 +223,23 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 - **Action type:** `action.calculate`. Capability `action.calculate`. Permission `calculate`. Low risk. Fallible.
 - **Configuration:** variable-aware numeric **Expression**. The editor requires a valid supported formula and rejects arbitrary text before simulation or export.
-- **Output:** `result` number on success. Structured error on failure.
+- **Output:** `result` float on success. Structured error on failure.
 - **Use:** arithmetic supported by the runtime expression evaluator, not arbitrary code.
 - **Simulation:** evaluates with current values using the same supported expression rules.
 
 ### Convert Value
 
 - **Action type:** `action.value.convert`. Capability `action.value`. Permission `value.convert`. Low risk. Fallible.
-- **Configuration:** a variable-aware **Value** and a target type of text, number, integer, boolean, list, or object.
+- **Configuration:** a variable-aware **Value** and a target type of `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `hotkey`, `datetime`, or `duration`.
+- **Null:** `null` is rejected for every target. An unset variable or a missing object field resolves to `null`.
+- **String rules:** accepts any non-null value. An existing string passes through unchanged, and every other type is converted to its JSON text form.
 - **Integer rules:** the value must already be a whole number within the safe integer range. Convert Value does not round decimal values.
+- **Float rules:** accepts an integer, a float, or non-empty numeric text. The result always renders with a decimal point.
 - **Boolean rules:** accepts a boolean value or the text `true` or `false` without regard to letter case.
 - **List and object rules:** accepts an existing value of the selected type or JSON text whose top-level value has the selected type.
+- **Color and hotkey rules:** accepts only text, checked against the same [color](variables.md#variable-types) or [hotkey](#supported-windows-node-keys) rule as the matching variable type.
+- **Datetime rules:** accepts an existing datetime value, or a bare RFC 3339 string, which is wrapped into the datetime object automatically.
+- **Duration rules:** accepts only an existing duration value. There is no conversion from a plain number or text.
 - **Output:** `value`, `source_type`, and `target_type` on success. Structured error details are available from `failed`.
 
 ### Text Transform
@@ -266,7 +272,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Delay
 
 - **Action type:** `action.delay`. Capability `action.delay`. Permission `delay`. Low risk. Fallible.
-- **Configuration:** variable-aware positive **Amount** and unit milliseconds, seconds, minutes, hours, or days. The resolved duration must be at least one millisecond.
+- **Configuration:** variable-aware positive whole **Amount** and unit milliseconds, seconds, minutes, hours, or days. The resolved duration must be at least one millisecond. A fraction is refused rather than rounded; choose a smaller unit for a shorter pause, so half a second is `500` milliseconds.
 - **Flow:** `success` continues after the cancellable wait. An invalid resolved duration continues through `failed` with structured error details. Cancelling a run stops execution instead of following `failed`.
 - **Simulation:** validates the resolved duration and records the simulated delay without blocking the UI thread.
 
@@ -301,9 +307,9 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Input components:** Text input, Password input, Multiline text, Number input, Checkbox, Single choice, Multi choice, Dropdown, Date, Time, Date and time, Color picker, File picker, Folder picker, and Slider. The editor shows only settings owned by the selected component type. Component types are selected when a component is added and cannot be changed afterward.
 - **Display components:** Information, Section heading, Divider, and Image. Information, Section heading, and Divider have configurable variable-aware accent colors. Images use packaged project image assets, support contain or cover fitting, and are limited to 8 MiB.
 - **Field keys:** every input component has a literal output key. Keys must be unique identifiers of at most 64 characters and use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. Display components have no key or output.
-- **Typed values:** Number and Slider return numbers; Checkbox returns a boolean; Multi choice and a multi-file File picker return lists; Color picker returns a normalized `#RRGGBB` color; File picker and Folder picker return filesystem paths; Date and Time return their displayed ISO-shaped values; Date and time returns an ISO 8601 UTC timestamp; the remaining inputs return text.
+- **Typed values:** Number and Slider return floats; Checkbox returns a boolean; Multi choice and a multi-file File picker return lists; Color picker returns a normalized `#RRGGBB` color; File picker and Folder picker return filesystem paths as text; Date and Time return their displayed ISO-shaped values; Date and time returns an ISO 8601 UTC timestamp; the remaining inputs return text.
 - **Path selection:** the desktop runner opens an authenticated native operating-system picker. BaudBound does not restrict which files or folders the signed-in user can select. Canceling a picker leaves the existing value unchanged.
-- **Defaults and variables:** Text and Multiline defaults are variable-aware, while Password has no default value. Number defaults accept numeric variables and must resolve to a finite supported number. Date, Time, and Date and time defaults use either their literal picker or one complete `datetime` variable reference; string variables are rejected even when their text resembles a date. A typed datetime is displayed in local time for Date and Time; Date and time uses the component's configured timezone. Checkbox has a boolean default.
+- **Defaults and variables:** Text and Multiline defaults are variable-aware, while Password has no default value. Number defaults accept float variables and must resolve to a finite supported number. Date, Time, and Date and time defaults use either their literal picker or one complete `datetime` variable reference; string variables are rejected even when their text resembles a date. A typed datetime is displayed in local time for Date and Time; Date and time uses the component's configured timezone. Checkbox has a boolean default.
 - **Choices:** each choice has a variable-aware key and displayed value. The dialog shows only the displayed value and returns only the key. Both must resolve to non-empty unique text. Each choice component supports 1 through 100 choices, and multi-choice results preserve configured order rather than click order.
 - **Required values:** required text must not be empty, required numbers must be present and finite, required checkboxes must be checked, and required choice components need a selection. An optional blank number is omitted from `values`.
 - **Buttons and outputs:** every Form Dialog displays Cancel and Submit. `values` is an object whose typed fields are derived from component keys, `submitted` is true only after Submit, and `button` is `ok`, `cancel`, or `timeout`.
