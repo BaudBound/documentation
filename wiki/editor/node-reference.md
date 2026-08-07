@@ -88,7 +88,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Hotkey
 
 - **Action type:** `trigger.hotkey`. Capability `trigger.hotkey`. Medium risk. Windows Desktop only.
-- **Configuration:** choose **Literal key** to capture a chord or **Variable** to select a pre-trigger `keyboard_key` Script Setting. The variable selector shows only compatible keyboard key values and displays the setting name without requiring braces. A single literal key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
+- **Configuration:** choose **Literal key** to capture a chord or **Variable** to select a pre-trigger `hotkey` Script Setting. The variable selector shows only compatible hotkey values and displays the setting name without requiring braces. A single literal key such as `G`, `F1`, or `MediaPlayPause` is valid. Any distinct supported keys can form a chord, including `K+L`, `F1+T`, and `Ctrl+Shift+B`. See [Supported Windows node keys](#supported-windows-node-keys) for the exact names.
 - **Output:** canonical `key` expression and timestamp.
 - **Use:** start a script when the complete physical key chord is held while the Windows desktop background runner is active.
 - **Matching:** the held keys must match the configured chord exactly. The run starts when the final required key is pressed, regardless of the order in which the keys were pressed. Holding the chord does not repeatedly start runs.
@@ -230,14 +230,14 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Convert Value
 
 - **Action type:** `action.value.convert`. Capability `action.value`. Permission `value.convert`. Low risk. Fallible.
-- **Configuration:** a variable-aware **Value** and a target type of `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `keyboard_key`, `datetime`, or `duration`.
+- **Configuration:** a variable-aware **Value** and a target type of `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `hotkey`, `datetime`, or `duration`.
 - **Null:** `null` is rejected for every target. An unset variable or a missing object field resolves to `null`.
 - **String rules:** accepts any non-null value. An existing string passes through unchanged, and every other type is converted to its JSON text form.
 - **Integer rules:** the value must already be a whole number within the safe integer range. Convert Value does not round decimal values.
 - **Float rules:** accepts an integer, a float, or non-empty numeric text. The result always renders with a decimal point.
 - **Boolean rules:** accepts a boolean value or the text `true` or `false` without regard to letter case.
 - **List and object rules:** accepts an existing value of the selected type or JSON text whose top-level value has the selected type.
-- **Color and keyboard key rules:** accepts only text, checked against the same [color](variables.md#variable-types) or [keyboard key](#supported-windows-node-keys) rule as the matching variable type.
+- **Color and hotkey rules:** accepts only text, checked against the same [color](variables.md#variable-types) or [hotkey](#supported-windows-node-keys) rule as the matching variable type.
 - **Datetime rules:** accepts an existing datetime value, or a bare RFC 3339 string, which is wrapped into the datetime object automatically.
 - **Duration rules:** accepts only an existing duration value. There is no conversion from a plain number or text.
 - **Output:** `value`, `source_type`, and `target_type` on success. Structured error details are available from `failed`.
@@ -488,7 +488,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Keyboard
 
 - **Action type:** `action.keyboard`. Capability `action.keyboard`. Permission `keyboard.control`. High risk. Windows Desktop only. Fallible.
-- **Configuration:** choose an input action and either a literal key chord or a compatible `keyboard_key` Script Setting. Literal mode can capture keys or use the key reference buttons. Variable mode lists only compatible settings and displays the setting name without requiring braces. Separate literal chord members with `+`, for example `G`, `F1`, `K+L`, or `Ctrl+Shift+S`.
+- **Configuration:** choose an input action and either a literal key chord or a compatible `hotkey` Script Setting. Literal mode can capture keys or use the key reference buttons. Variable mode lists only compatible settings and displays the setting name without requiring braces. Separate literal chord members with `+`, for example `G`, `F1`, `K+L`, or `Ctrl+Shift+S`.
 - **Supported keys:** uses the same [Supported Windows node keys](#supported-windows-node-keys) as the Hotkey trigger. Unsupported names are rejected instead of being guessed.
 - **Platform:** Windows Desktop only.
 - **Output:** the normalized key expression, the performed input action, or an error.

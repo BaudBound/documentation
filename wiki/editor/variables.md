@@ -28,7 +28,7 @@ Every variable, Script Setting, and node output uses one of ten types. Matching 
 | `object` | A JSON object | A JSON array |
 | `list` | A JSON array | A JSON object |
 | `color` | Six digit hex text such as `#2F80ED`, case insensitive | A three digit hex code, or a named color such as `red` |
-| `keyboard_key` | A key or chord validated against the [shared Windows key contract](node-reference.md#supported-windows-node-keys), such as `F5` or `Ctrl+S` | An unknown key name, an empty expression, or a repeated key |
+| `hotkey` | A key or chord validated against the [shared Windows key contract](node-reference.md#supported-windows-node-keys), such as `F5` or `Ctrl+S` | An unknown key name, an empty expression, or a repeated key |
 | `datetime` | An object with `type: "datetime"` and an RFC 3339 `value` | A bare date string without the surrounding object |
 | `duration` | An object with `type: "duration"`, a `unit`, and a numeric `value` | An object that is missing its `unit` |
 
@@ -52,7 +52,7 @@ Add `|target` inside the braces to convert a value to a different type before it
 {{name|target}}
 ```
 
-`target` is one of the ten types: `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `keyboard_key`, `datetime`, or `duration`. A cast can be used anywhere a reference is used, including inside a longer string:
+`target` is one of the ten types: `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `hotkey`, `datetime`, or `duration`. A cast can be used anywhere a reference is used, including inside a longer string:
 
 ```text
 https://spools.example.com/api/v1/spool/{{spool_number|string}}
@@ -72,7 +72,7 @@ https://spools.example.com/api/v1/spool/{{spool_number|string}}
 | `list` | An existing list, or text that parses as a JSON array | `null`, or a value that does not resolve to a list |
 | `object` | An existing object, or text that parses as a JSON object | `null`, or a value that does not resolve to an object |
 | `color` | Text satisfying the `color` rule above | `null`, a value that is not text, or text that fails the rule |
-| `keyboard_key` | Text satisfying the `keyboard_key` rule above | `null`, a value that is not text, or text that fails the rule |
+| `hotkey` | Text satisfying the `hotkey` rule above | `null`, a value that is not text, or text that fails the rule |
 | `datetime` | An existing datetime value, or a bare RFC 3339 string wrapped into the datetime object automatically | `null`, text that is not a valid date, or any other shape |
 | `duration` | An existing duration value | `null`, or any other shape |
 
@@ -181,7 +181,7 @@ A stored variable is loaded at run start when the script contains a Variable Ope
 
 Open **Settings**, then choose **Default Variables**. This section defines typed starting values that are saved in the `.bbs` package. The bottom **Variables** tab remains a read only view of values that can exist during a run.
 
-Every default variable must have an explicit value. String, color, and keyboard key defaults cannot be blank, while values such as `false`, `0`, an empty list, and an empty object are valid explicit defaults. The editor changes to match the selected type:
+Every default variable must have an explicit value. String, color, and hotkey defaults cannot be blank, while values such as `false`, `0`, an empty list, and an empty object are valid explicit defaults. The editor changes to match the selected type:
 
 | Type | Editor |
 | --- | --- |
@@ -192,7 +192,7 @@ Every default variable must have an explicit value. String, color, and keyboard 
 | `object` | JSON editor with line numbers |
 | `list` | Item type selector and ordered item rows |
 | `color` | Color picker and text field restricted to `#RRGGBB` |
-| `keyboard_key` | Captures a canonical Windows key or chord such as `Ctrl+Shift+F8` |
+| `hotkey` | Captures a canonical Windows key or chord such as `Ctrl+Shift+F8` |
 | `datetime` | Local date and time field stored in RFC 3339 format |
 | `duration` | Amount field and unit selector |
 
@@ -219,7 +219,7 @@ Open **Settings**, then choose **Script Settings**. A Script Setting is a packag
 
 Each declaration contains a name, type, description, required option, optional package default, and optional simulation override. Script Settings use the same ten types as default variables.
 
-Use `keyboard_key` when a Hotkey trigger or Keyboard action should be configurable on each runner. Those node fields offer Literal key and Variable modes and list only compatible `keyboard_key` settings. Use `color` for configurable color comparisons. A color setting used in Color Match updates the field's color swatch after the variable resolves.
+Use `hotkey` when a Hotkey trigger or Keyboard action should be configurable on each runner. Those node fields offer Literal key and Variable modes and list only compatible `hotkey` settings. Use `color` for configurable color comparisons. A color setting used in Color Match updates the field's color swatch after the variable resolves.
 
 Use the setting through the read only `settings` object:
 
