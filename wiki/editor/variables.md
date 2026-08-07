@@ -100,11 +100,11 @@ Interpolating a float into text always includes a decimal point, even when the v
 
 Incrementing preserves the type it started with. An integer that increments by a whole amount stays an integer, so a counter that starts at `0` and increments by `1` each run renders `3`, not `3.0`. A missing counter starts from integer `0`. Incrementing by a fractional amount produces a float. Calculate always produces a float, because its expression evaluator works in floating point regardless of the operands.
 
-### A float variable cannot be given a whole default value
+### A declared float may hold a whole value
 
-The editor writes `50` for a value of fifty, which reads back as an integer, so a default variable of type `float` cannot default to `50`. Give it a fractional default such as `50.5`, or declare the variable an integer instead.
+A default variable or Script Setting declared `float` accepts a whole value such as `300` or `300.0`, and holds it as a float. The type written beside the value is what settles it, the same way a typed language reads `300` into a variable declared as a decimal number.
 
-This limitation applies only to values typed into the editor. It does not affect a float produced by the runner, by Calculate, or by an external payload. It also does not affect a numeric config field. Typing `440` into the Beep node's frequency field still works, because a config field literal is checked by a different mechanism than a default variable default.
+This applies only where a value is declared next to its type. A value flowing through a run still has one exact type, and there a whole number is an integer, not a float: `{{count}}` holding `300` fails **Is float** and passes **Is integer**. Cast it with `{{count|float}}` to move it across.
 
 ## Choose the right data kind
 
