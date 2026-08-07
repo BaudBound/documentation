@@ -55,7 +55,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 - **Configuration:** required variable-aware **Every** positive whole number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resolved interval must be at least one millisecond. A fraction is refused rather than rounded; choose a smaller unit for a shorter interval, so half a second is `500` milliseconds.
 - **Output:** runner payload includes interval and due-time information. Graph continues through `out`.
 - **Use:** recurring work while a background service is active.
-- **Runtime:** unchanged registrations preserve due timing across reload. A delayed poll emits every occurrence that came due rather than dropping any, and `missed_intervals` reports how many were still due behind each one. Millisecond schedules use operating-system timers and are not hard real-time guarantees.
+- **Runtime:** unchanged registrations preserve due timing across reload. A delayed poll emits every occurrence that came due rather than dropping any. Millisecond schedules use operating-system timers and are not hard real-time guarantees.
 - **Simulation:** fires automatically while simulation remains active.
 
 ### File Watch
