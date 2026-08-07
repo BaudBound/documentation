@@ -284,7 +284,9 @@ This workflow increments a persistent counter and logs a different message after
 
 1. Add a **Manual** trigger.
 2. Add a **Variable Operation** node and connect Manual to it.
-3. Set **Operation** to **Increment**, **Variable name** to `run_count`, **Scope** to **Persistent**, and **Amount** to `1`.
+3. Set **Operation** to **Increment**, **Variable name** to `run_count`, **Scope** to **Persistent**, **Variable type** to **Integer**, and **Amount** to `1`.
+
+    **Variable type** defaults to **String**. Increment keeps whichever numeric type the variable already has, so it does not set the type for you. Leaving it as **String** makes the comparison in step 5 fail verification, because a comparison needs an integer or a float.
 4. Add an **If / Else** node and connect Variable Operation to it.
 5. Set its condition to `{{run_count}}` **greater than or equal** `3`.
 6. Add two **Log** actions.

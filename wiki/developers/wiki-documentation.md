@@ -76,7 +76,7 @@ Write internal links to repository Markdown files:
 
 ```markdown
 [Installation and Updates](../runner/installation.md)
-[Configuration](configuration.md#serial-devices)
+[Configuration](../runner/configuration.md#serial-device-model)
 ```
 
 The publisher verifies the target page and rewrites it to the managed Wiki.js path. Root-relative Wiki.js links are also accepted when they point to a managed page, but source-relative Markdown links are easier to review during file moves.
