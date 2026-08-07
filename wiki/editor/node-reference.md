@@ -52,7 +52,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Schedule
 
 - **Action type:** `trigger.schedule`. Capability `trigger.schedule`. Low risk.
-- **Configuration:** required variable-aware **Every** positive number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resolved interval must be at least one millisecond.
+- **Configuration:** required variable-aware **Every** positive whole number. **Unit** `milliseconds`, `seconds`, `minutes`, `hours`, or `days`, default `minutes`. The resolved interval must be at least one millisecond. A fraction is refused rather than rounded; choose a smaller unit for a shorter interval, so half a second is `500` milliseconds.
 - **Output:** runner payload includes interval and due-time information. Graph continues through `out`.
 - **Use:** recurring work while a background service is active.
 - **Runtime:** unchanged registrations preserve due timing across reload. Missed intervals are counted without dispatching every missed occurrence. Millisecond schedules use operating-system timers and are not hard real-time guarantees.
@@ -272,7 +272,7 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 ### Delay
 
 - **Action type:** `action.delay`. Capability `action.delay`. Permission `delay`. Low risk. Fallible.
-- **Configuration:** variable-aware positive **Amount** and unit milliseconds, seconds, minutes, hours, or days. The resolved duration must be at least one millisecond.
+- **Configuration:** variable-aware positive whole **Amount** and unit milliseconds, seconds, minutes, hours, or days. The resolved duration must be at least one millisecond. A fraction is refused rather than rounded; choose a smaller unit for a shorter pause, so half a second is `500` milliseconds.
 - **Flow:** `success` continues after the cancellable wait. An invalid resolved duration continues through `failed` with structured error details. Cancelling a run stops execution instead of following `failed`.
 - **Simulation:** validates the resolved duration and records the simulated delay without blocking the UI thread.
 

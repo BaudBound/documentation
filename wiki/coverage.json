@@ -32,7 +32,7 @@
         "sources": "data/nodes/definitions/**/*.ts",
         "page": "editor/node-reference",
         "expectedCount": 54,
-        "sourceFingerprint": "f83b76a289bf7c2ac4a67094a7f49d75f38c503b171e6d0b8f372247c8be7d7a"
+        "sourceFingerprint": "a19f3ef5e5d9c9640094f2dbd301942c57acaf85b971726573a2fd8bb602afaf"
     },
     "desktop": {
         "sourceRoot": "runner",
