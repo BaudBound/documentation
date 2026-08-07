@@ -54,9 +54,9 @@ Reload rebuilds script registrations. Configuration fields are loaded into servi
 
 - **Prerequisite:** `schedules_enabled = true`, enabled/current script, positive interval of at least one millisecond.
 - **Registration:** one timer per Schedule node.
-- **Payload:** interval seconds, configured every/unit, scheduled Unix time, and missed-interval count.
+- **Payload:** `interval_seconds` as a float, the configured `every` and `unit`, `scheduled_at_unix`, and `missed_intervals`. `missed_intervals` counts how many further occurrences were already due behind that event, and is zero when the runner is on time.
 - **Reload:** unchanged registration preserves its next deadline. Changed interval resets scheduling from reload time.
-- **Duplicate prevention:** when delayed, the service advances past missed intervals and emits one due event with a count rather than replaying every occurrence.
+- **Catch up:** when delayed, every occurrence that came due is emitted, oldest first, so nothing is dropped. `max_schedule_catch_up_events_per_poll` bounds how many one poll may replay; the rest stay due for the next poll. Read `missed_intervals` to skip work that a later event in the same batch repeats.
 - **Timer accuracy:** millisecond intervals use operating-system timers. They are suitable for short automation intervals, but they are not hard real-time guarantees and may run late while the system is busy.
 - **Failure:** invalid duration or duplicate registration identity.
 
