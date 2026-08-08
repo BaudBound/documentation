@@ -187,9 +187,23 @@ The selected scope controls ownership and lifetime:
 | `persistent` | Stored for this script and loaded into later runs of the same script. | Medium-risk persistent write |
 | `global` | Stored once by name and shared with every script using that global name. | High-risk cross-script write |
 
-The runner executes only one run of a specific installed script at a time. A later run of the same script waits until the active run finishes, so persistent variables provide predictable state between its runs. Different scripts can run at the same time. Global writes remain versioned so two different scripts cannot silently overwrite an update made between reading and writing. Use global variables sparingly because unrelated scripts can intentionally share and change the same value.
+By default the runner executes one run of a specific installed script at a time, and a later activation of the same script waits for the active run to finish. That is the `limits.max_active_runs_per_script` default of `1`, not a rule: raising it lets runs of one script overlap. Different scripts always run at the same time. Global writes remain versioned so two different scripts cannot silently overwrite an update made between reading and writing. Use global variables sparingly because unrelated scripts can intentionally share and change the same value.
 
 A stored variable is loaded at run start when the script contains a Variable Operation declaration for that name and scope. Do not declare the same variable name with conflicting scopes in one script.
+
+### A condition reads current stored state
+
+A persistent or global variable is loaded once when the run starts. A condition then reloads the stored variables its rows name, so a value changed by another run, or by the same script on a later activation, is seen rather than missed. This applies to **If / Else** and **While** alike, and to a **While** on every pass.
+
+The reloaded value is kept. Every node after the condition reads what the condition read, not the copy taken at run start, so a **Log** placed after an **If / Else** shows the same value the branch was chosen from.
+
+This is what lets a loop end on a flag something else set:
+
+```text
+While  {{running}} is true  ->  ...work...
+```
+
+Only the variables a condition actually names are reloaded, so the cost follows what the condition uses. A runtime variable is never reloaded, because nothing outside the run can change it.
 
 ### Default variables
 
