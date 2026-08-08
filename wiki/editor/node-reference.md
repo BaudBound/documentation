@@ -270,8 +270,9 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 
 - **Action type:** `action.text.format`. Capability `action.text`. Permission `text.transform`. Low risk. Fallible.
 - **Configuration:** one initial input followed by an ordered list of operations. Drag operations to change their order.
-- **Operations:** template, trim, uppercase, lowercase, sentence case, capitalize words, literal/regex replace, split, join, substring, padding, URL/Base64 encode/decode, and JSON escape/unescape.
-- **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text.
+- **Operations:** template, format date and time, trim, uppercase, lowercase, sentence case, capitalize words, literal/regex replace, split, join, substring, padding, URL/Base64 encode/decode, and JSON escape/unescape.
+- **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text. Format date and time changes a datetime into text.
+- **Format date and time:** renders a datetime with a pattern such as `yyyy-MM-dd HH:mm`. See [Datetime format patterns](variables.md#datetime-format-patterns).
 - **Output:** the final value is available as `text` or `items` according to its type.
 - **Failure:** invalid regex, encoding, indexes, or an incompatible value type continues through `failed`.
 - **Regular expressions:** replacement patterns use the same bounded linear-time subset in the Editor and Runner. Simulation executes regex work outside the UI thread and can be cancelled.

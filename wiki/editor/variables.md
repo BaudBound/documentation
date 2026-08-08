@@ -314,8 +314,9 @@ System values are read-only and describe the runner environment at execution tim
 | `{{system_user}}` | Runner user when available |
 | `{{system_locale}}` | Runner locale |
 | `{{system_timezone}}` | Runner time zone |
-| `{{system_date}}` | Current runner-local ISO date |
-| `{{system_time}}` | Current runner-local 24-hour time |
+| `{{system_datetime}}` | Current runner-local date and time, as a datetime |
+
+`{{system_datetime}}` is a datetime rather than text, so a script can read one part of it with a [derived part](#derived-metadata) or render it with the **Format date and time** operation of [Text Transform](node-reference.md#text-transform). Every reference within one run reads the same moment: the runner takes one clock reading when the run starts.
 
 Simulation uses browser-derived or clearly simulated system values. Do not assume that simulator host data matches the machine where the package will run.
 
@@ -382,7 +383,74 @@ Examples:
 {{payload.$is_empty}}
 ```
 
+### Datetime and duration parts
+
+A datetime and a duration each expose their components as well, so a script can read one field without any string handling:
+
+| Datetime suffix | Result |
+| --- | --- |
+| `.$year` | Calendar year |
+| `.$month` | Month, 1 through 12 |
+| `.$day` | Day of the month |
+| `.$hour` | Hour, 0 through 23 |
+| `.$minute` | Minute, 0 through 59 |
+| `.$second` | Second, 0 through 59 |
+| `.$weekday` | Day of the week, Monday `1` through Sunday `7` |
+
+| Duration suffix | Result |
+| --- | --- |
+| `.$days` | Whole days in the span |
+| `.$hours` | Hours left after the days |
+| `.$minutes` | Minutes left after the hours |
+| `.$seconds` | Seconds left after the minutes |
+| `.$milliseconds` | Milliseconds left after the seconds |
+| `.$total_milliseconds` | The whole span in milliseconds |
+
+Duration parts are a breakdown, not the same span counted six ways: a duration of 90 seconds reads as `.$minutes` `1` and `.$seconds` `30`, with `.$total_milliseconds` `90000`.
+
+A datetime part is read in the offset the value carries rather than converted to the machine's own zone, so `{{system_datetime.$hour}}` is the hour on the runner's wall clock.
+
+```text
+{{system_datetime.$hour}}
+{{system_datetime.$weekday}}
+{{n-mr3zyt6f-12.elapsed.$total_milliseconds}}
+```
+
 Metadata is refreshed whenever the underlying runtime value changes. The `$` names are reserved. An object property with the same name cannot be addressed through this derived-token form.
+
+## Datetime format patterns
+
+The **Format date and time** operation of [Text Transform](node-reference.md#text-transform) renders a datetime as text. Its pattern is a run of tokens; everything that is not a token is kept as written.
+
+| Token | Example |
+| --- | --- |
+| `yyyy` | `2026` |
+| `yy` | `26` |
+| `MMMM` | `July` |
+| `MMM` | `Jul` |
+| `MM` | `07` |
+| `M` | `7` |
+| `dd` | `03` |
+| `d` | `3` |
+| `EEEE` | `Friday` |
+| `EEE` | `Fri` |
+| `HH` | `14`, 24-hour |
+| `H` | `14`, 24-hour |
+| `hh` | `02`, 12-hour |
+| `h` | `2`, 12-hour |
+| `a` | `PM` |
+| `mm` | `05` |
+| `m` | `5` |
+| `ss` | `09` |
+| `s` | `9` |
+
+So `yyyy-MM-dd HH:mm` gives `2026-07-03 14:30`, and `EEEE d MMMM yyyy` gives `Friday 3 July 2026`.
+
+To keep a letter as text, wrap it in single quotes: `HH:mm 'on' EEEE` gives `14:30 on Friday`. Two single quotes in a row write one quote.
+
+A run of letters that is not a token is refused where it is written rather than emitted as itself, so a mistyped `YYYY` is reported in the editor instead of reaching the output as the literal text `YYYY`.
+
+A pattern is read in the offset the value carries, matching the [datetime parts](#datetime-and-duration-parts). Month and weekday names are English.
 
 ## Conditions and typed values
 
@@ -419,6 +487,6 @@ These controls only affect the panel. They do not change the project, exported p
 
 **The editor marks a reference red:** select a suggestion from the variable browser and compare the stable node ID, spelling, case, and nested path. For example, change `{{request.users[0].name}}` to the supported read form `{{request.users.0.name}}`.
 
-**A derived field does not resolve:** place `$length`, `$count`, `$type`, or `$is_empty` after the complete value name, such as `{{items.$length}}`. The older `.$meta.*` form is not supported.
+**A derived field does not resolve:** place the suffix after the complete value name, such as `{{items.$length}}`. Every value offers `$length`, `$count`, `$type`, and `$is_empty`; a datetime or duration also offers its [parts](#datetime-and-duration-parts). The older `.$meta.*` form is not supported.
 
 For node-specific output names and types, use [Node Reference](node-reference.md). For stored-state backup and recovery behavior, use [Storage, Backups, and Recovery](../runner/storage-backups.md).
