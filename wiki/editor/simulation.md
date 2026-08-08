@@ -110,6 +110,17 @@ A live request is sent by your browser. The editor has no server component and n
 
 That has one consequence worth knowing before you rely on live mode. Your browser only allows a cross-origin request when the destination permits it through CORS. A destination that does not send those headers fails in live mode even though the same request succeeds in the runner, because the runner has no such restriction. Use Mock mode for those destinations and test them on a runner instead.
 
+## Overlapping activations
+
+Simulation runs one trigger at a time, so it cannot show two runs of one script overlapping. It does follow the trigger's **When already running** option, because none of the modes need two runs at once:
+
+- **Queue** refuses the new activation and says so. Stop the active run first.
+- **Skip** reports that nothing happened.
+- **Stop** stops the running simulation and starts nothing.
+- **Restart** stops it and starts again.
+
+The one thing simulation cannot reproduce is `limits.max_active_runs_per_script` above `1`, where genuine concurrent runs of one script share persistent and global state. Test that on a runner.
+
 ## Side effects and fidelity
 
 The browser performs a small controlled set of visible simulation effects:

@@ -21,6 +21,16 @@ A listener waits for one kind of event. A hotkey listener waits for keyboard inp
 
 Do not start more than one method against the same runner home.
 
+## Overlapping activations
+
+Every trigger carries a **When already running** option choosing what happens when an activation arrives while a run of its script is going: **Queue** (the default, and the previous behaviour), **Skip**, **Stop**, or **Restart**. See [Node Reference](../editor/node-reference.md#when-already-running) for what each does.
+
+The runner reads the option before asking for an execution slot, so a stopped or skipped activation never waits for the run it was sent to replace and never counts against `limits.max_active_runs_per_script`. Raising that limit is not needed for a trigger to stop its own script.
+
+A stopped or skipped activation produces no run and therefore no run history record. The runner log names the trigger, the script, and the outcome. A webhook answers `202 Accepted`; every webhook response carries an `X-BaudBound-Trigger-Outcome` header of `started`, `stopped`, or `skipped`, and a WebSocket client receives one frame naming the same outcome.
+
+Cancellation is checked between every execution step, so a stop lands inside a running loop rather than at the next node boundary. Work already done stays done, including writes to persistent and global variables.
+
 ## Registration eligibility
 
 A trigger registers only when:

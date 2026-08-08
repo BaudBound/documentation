@@ -41,6 +41,30 @@ Risk and permission meanings are defined in [Approvals, Capabilities, and Risk](
 
 ## Triggers
 
+### When already running
+
+Every trigger carries a **When already running** option deciding what an activation does when a run of its script is already going. It defaults to **Queue**, which is the behaviour every script had before the option existed.
+
+| Mode | Behaviour |
+| --- | --- |
+| **Queue** | Wait for the active run, then start. |
+| **Skip** | Drop the activation. Nothing starts and nothing queues. |
+| **Stop** | Cancel the active run and start nothing. |
+| **Restart** | Cancel the active run, then start a fresh one. |
+
+The option is read before the runner asks for an execution slot, so **Stop** and **Skip** never wait for the run they were sent to replace and never count against `limits.max_active_runs_per_script`. That is what lets one trigger toggle its own long-running loop with the limit left at its default of `1`:
+
+```text
+Webhook "toggle"   (When already running: Stop)
+  -> While {{running}} -> ...work...
+```
+
+The first call starts the run and the loop. The second cancels it and starts nothing. The third starts it again. Cancellation is checked between every step, so it lands inside a loop rather than at the next node boundary.
+
+**Stop** and **Restart** cancel a run mid-step. Anything the run had already done stays done, including writes to persistent and global variables. **Restart** is not throttled: rapid activations can cancel and restart repeatedly, and the runner logs a line each time a run is cancelled before completing so that is visible.
+
+A stopped or skipped activation produces no run, so nothing appears in run history. The runner log records what happened. A **Webhook** answers `202 Accepted` with the outcome in its body, and every webhook response carries an `X-BaudBound-Trigger-Outcome` header of `started`, `stopped`, or `skipped`. A **WebSocket** client receives one frame naming the same outcome.
+
 ### Manual
 
 - **Action type:** `trigger.manual`. Capability `trigger.manual`. Low risk.
