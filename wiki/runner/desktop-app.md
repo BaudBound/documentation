@@ -210,7 +210,7 @@ Variables provides one place to inspect values that exist outside a single compl
 
 Stored values update through runner events as soon as a successful variable write is committed. The page does not poll the database for changes.
 
-**Declared defaults** contains the default variables from every installed package. It shows the script, scope, declared type, formatted default value, and description. Runtime defaults reset when a run starts. Persistent defaults initialize durable state only when the runner has not stored a value yet.
+**Declared defaults** contains the declared variables from every installed package. It shows the script, scope, declared type, formatted default value, and description. Runtime defaults reset when a run starts. Persistent defaults initialize durable state only when the runner has not stored a value yet.
 
 Choose **Export variables** to save all stored values and declared defaults in one JSON file. The export also includes scopes, types, script ownership, runner information, and declaration warnings. The current search does not limit the export. Managed secret values are never included.
 

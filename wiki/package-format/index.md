@@ -45,7 +45,7 @@ No other root files are accepted. Directory entries do not count as package docu
 
 Script Setting types are the ten value types: `string`, `integer`, `float`, `boolean`, `object`, `list`, `color`, `hotkey`, `datetime`, and `duration`. A `hotkey` is a canonical Windows key expression such as `Ctrl+Shift+F8`. A `color` is a seven-character `#RRGGBB` string. A default value must match the declared type. A list declaration also includes `item_type`. Every list item must match that type, and `item_type` cannot itself be `list`, so a list never directly contains another list. Runner overrides are stored outside the package. Editor simulation overrides belong to editor project data and are not exported into `manifest.json`.
 
-Default Variable declarations use the same ten types and the same list rules. Secret declarations are always strings.
+Declared Variable declarations use the same ten types and the same list rules. Secret declarations are always strings.
 
 An update must keep the same `id`. A display name is not a stable update key and may not uniquely identify a script.
 
