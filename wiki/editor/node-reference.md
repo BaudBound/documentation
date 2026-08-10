@@ -239,7 +239,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
 - **Access:** runtime scope requires `variable.local.set` at Low risk, persistent requires `variable.persistent.set` at Medium risk, and global requires `variable.global.set` at High risk.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
-- **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. The `manifest_` and `system_` prefixes and the exact name `settings` are reserved.
+- **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. No prefix is reserved: every built-in lives behind `@`, which a name may not contain.
 - **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
 - **Simulation:** updates current simulation state. Runner persistence must be tested separately.
 
@@ -270,8 +270,9 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 
 - **Action type:** `action.text.format`. Capability `action.text`. Permission `text.transform`. Low risk. Fallible.
 - **Configuration:** one initial input followed by an ordered list of operations. Drag operations to change their order.
-- **Operations:** template, trim, uppercase, lowercase, sentence case, capitalize words, literal/regex replace, split, join, substring, padding, URL/Base64 encode/decode, and JSON escape/unescape.
-- **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text.
+- **Operations:** template, format date and time, trim, uppercase, lowercase, sentence case, capitalize words, literal/regex replace, split, join, substring, padding, URL/Base64 encode/decode, and JSON escape/unescape.
+- **Order:** each operation receives the result from the operation above it. Split changes text into a list. Join changes a list back into text. Format date and time changes a datetime into text.
+- **Format date and time:** renders a datetime with a pattern such as `yyyy-MM-dd HH:mm`. See [Datetime format patterns](variables.md#datetime-format-patterns).
 - **Output:** the final value is available as `text` or `items` according to its type.
 - **Failure:** invalid regex, encoding, indexes, or an incompatible value type continues through `failed`.
 - **Regular expressions:** replacement patterns use the same bounded linear-time subset in the Editor and Runner. Simulation executes regex work outside the UI thread and can be cancelled.
