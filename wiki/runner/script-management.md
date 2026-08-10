@@ -70,8 +70,8 @@ Removing an override returns that field to its package default. Resetting all ov
 Script Settings are available inside a script through references such as:
 
 ```text
-{{settings.Endpoint}}
-{{settings.RetryCount}}
+{{@settings.Endpoint}}
+{{@settings.RetryCount}}
 ```
 
 Do not put passwords, tokens, private keys, or other credentials in Script Settings. Use [Secrets](secrets.md).

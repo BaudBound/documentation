@@ -239,7 +239,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
 - **Access:** runtime scope requires `variable.local.set` at Low risk, persistent requires `variable.persistent.set` at Medium risk, and global requires `variable.global.set` at High risk.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
-- **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. The `manifest_` and `system_` prefixes and the exact name `settings` are reserved.
+- **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. No prefix is reserved: every built-in lives behind `@`, which a name may not contain.
 - **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
 - **Simulation:** updates current simulation state. Runner persistence must be tested separately.
 

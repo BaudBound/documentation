@@ -23,7 +23,7 @@ This low-risk workflow writes a timestamped message once per minute while the ba
 2. Set **Every** to `1` and **Unit** to **Minutes**.
 3. Add a **Log** action and connect Schedule to Log.
 4. Set **Log level** to **Info**.
-5. Set **Message** to `Scheduled run at {{system_datetime.$hour}}:{{system_datetime.$minute}}`.
+5. Set **Message** to `Scheduled run at {{@system.datetime.hour}}:{{@system.datetime.minute}}`.
 
 The graph is:
 
