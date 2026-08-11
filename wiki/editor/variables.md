@@ -205,9 +205,13 @@ While  {{running}} is true  ->  ...work...
 
 Only the variables a condition actually names are reloaded, so the cost follows what the condition uses. A runtime variable is never reloaded, because nothing outside the run can change it.
 
-### Default variables
+### Declaring a variable
 
-Open **Settings**, then choose **Variables**. This section declares the variables a script has, with their type, scope and starting value, and is saved in the `.bbs` package.
+Open **Settings**, then choose **Variables**. This is where a variable comes into existence: a declaration gives it a name, a type, a scope and a starting value, and is saved in the `.bbs` package.
+
+A declaration is the only way a variable exists. A Variable Operation node picks the variable it writes from the declared ones; it cannot name a new one. A package whose program writes a variable its manifest does not declare is refused when it is imported and refused again when a runner installs it, rather than failing partway through the first run.
+
+This is also why nothing a run does can remove a variable. There is no delete operation: **Reset** puts back the declared value, and the variable goes on existing because the declaration goes on existing.
 
 The **Variables** tab along the bottom of the editor is a different thing with the same name: a read-only view of the values that can exist during a run, including built-ins and node outputs. One declares, the other observes.
 
@@ -234,12 +238,21 @@ Choose one of these scopes:
 
 | Scope | Start-of-run behavior |
 | --- | --- |
-| `runtime` | Every run starts from the saved package value. Changes made by Variable Operation nodes last only for that run. |
-| `persistent` | The runner saves the package value only when that script has no stored value. Later runs use the stored value, including changes made by Variable Operation nodes. |
+| `runtime` | Every run starts from the declared value. Changes last only for that run. |
+| `persistent` | The declared value is stored only when this script has no stored value yet. Later runs of this script start from what was stored. |
+| `global` | The declared value is stored only when no script has stored that name yet. Every script declaring the name reads and writes the same value. |
 
-A Variable Operation node can change a declared variable by using the same name, type, and scope. Export verification rejects a mismatch so the editor and runner cannot interpret one name in two different ways.
+A **global** is shared mutable state across every installed script, and the name is the whole of the sharing. Two unrelated scripts that both declare `counter` as a global are using one `counter`, whether or not either author knew the other existed. Nothing scopes it further: there is no owner, no namespace, and no permission to share with a particular script. Install a second script declaring a global that already has a stored value and it adopts that value rather than resetting it to its own declared one.
 
-Updating a script package does not replace an existing persistent value. The new default applies only when no value has been stored for that script. Removing and importing the script again creates a new persistent state lifecycle.
+That is occasionally what you want, and it is why the write asks for a high-risk approval. Where scripts do not need to share, use `persistent`, which is per-script and cannot be reached by anything else. Where they do, pick a name specific enough that an accidental collision is unlikely.
+
+The runner shows which script last wrote each global, so a value that changed unexpectedly can be traced to the script that changed it.
+
+A Variable Operation node states neither a scope nor a type. It names a declared variable, and the declaration settles both, so there is no second answer that could contradict the first. The node's name field offers only the declared variables the chosen operation can be applied to: **Increment** lists the numeric ones, **Toggle boolean** the booleans. A **Declare** button beside it opens this tab for a variable that does not exist yet.
+
+Renaming a declaration rewrites every reference to it across the script.
+
+Updating a script package does not replace an existing persistent value. The new declared value applies only when no value has been stored for that script. Removing and importing the script again creates a new persistent state lifecycle.
 
 Default values are ordinary package data. Anyone who receives the package can read them. Use a [secret declaration](../runner/secrets.md) for passwords, access tokens, private keys, and other sensitive values.
 
@@ -375,10 +388,14 @@ Node outputs use the same ten types as declared variables, Script Settings, and 
 | **Set object field** | Writes a typed nested object field and creates missing objects or list positions. |
 | **Remove object field** | Removes a nested field or list position when the path exists. The variable must already contain an object. |
 | **Merge object** | Performs a shallow merge. Incoming top level fields replace fields with the same name. A missing value starts as an empty object. |
-| **Clear** | Resets an existing variable to the empty value for its current type without deleting its stored declaration. Clear fails when the variable does not exist. |
-| **Delete variable** | Removes the value completely. It requires only the variable name and scope because deletion is independent of type. Deleting a persistent default allows its package default to initialize again on a later run. |
+| **Clear** | Empties the variable for its declared type: `""`, `0`, `false`, an empty list or object, the epoch for a datetime, zero seconds for a duration, and black for a color. |
+| **Reset** | Puts the variable back to the value its declaration gives it. |
 
-Only **Set** asks for a variable type. A Set operation for a list also asks for the one item type used by that list. Fixed operations derive their required type from the operation. Clear derives the type from the existing value. Append infers the item type from the value and existing list, while Remove matching list items uses exact value and type equality.
+**Clear** and **Reset** answer different questions. Clear asks what "empty" means for the type; Reset asks what the declaration says. For a variable declared with a starting value of `10`, Clear writes `0` and Reset writes `10`. They give the same answer only when the declared value is already the empty one.
+
+A hotkey has no empty value — there is no key combination meaning "no key" — so Clear is not offered for one. Reset is.
+
+No operation asks for a type. The variable named settles it, because a type belongs to the declaration; an operation that implies a type still wins, since that is a property of the operation rather than of the variable. Append and Remove matching list items use the declared item type.
 
 Operations that need input accept either a typed value or a variable reference. Text, integer, float, and object inputs use the same code editor for both forms. Other typed inputs provide a **Raw value** source for variable references. The runner validates each resolved value before changing runtime or stored state.
 

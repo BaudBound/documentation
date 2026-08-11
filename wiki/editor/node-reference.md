@@ -234,10 +234,11 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 ### Variable Operation
 
 - **Action type:** `runtime.set_variable`. Capabilities `runtime.variables` and, for stored scopes, `runtime.persistent_storage`. Fallible.
-- **Configuration:** operation `set`, `increment`, `toggle_boolean`, `append_list`, `remove_list_items`, `set_object_field`, `remove_object_field`, `merge_object`, `clear`, or `delete`. Name. Scope `runtime`, `persistent`, or `global`. Set also declares a value type, and Set list declares one item type. Other operations use operation-specific values, removal modes, and field paths. Object field writes declare the field value type.
-- **Clear and Delete:** require a variable name and scope. Neither requires a variable type or value. Clear derives the empty value from the existing variable and fails if it does not exist.
-- **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
-- **Access:** runtime scope requires `variable.local.set` at Low risk, persistent requires `variable.persistent.set` at Medium risk, and global requires `variable.global.set` at High risk.
+- **Configuration:** operation `set`, `increment`, `toggle_boolean`, `append_list`, `remove_list_items`, `set_object_field`, `remove_object_field`, `merge_object`, `clear`, or `reset`. Name, chosen from the variables the manifest declares. Operations use operation-specific values, removal modes, and field paths. Object field writes declare the field value type.
+- **Scope and type:** neither is on the node. It names a declared variable and the declaration settles both, so a package whose node disagreed with its manifest is no longer expressible. A write to a name the manifest does not declare is refused when the package is loaded.
+- **Clear and Reset:** take a variable name and nothing else. Clear writes the empty value for the declared type; a hotkey has none, so Clear is refused for one and is not offered in the editor. Reset writes the value the declaration gives the variable.
+- **List operations:** Append uses the declared item type and rejects an item that differs from it. Remove matching list items compares the resolved value and type exactly.
+- **Access:** derived from the declared scope — `variable.local.set` at Low risk for `runtime`, `variable.persistent.set` at Medium for `persistent`, `variable.global.set` at High for `global`.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
 - **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. No prefix is reserved: every built-in lives behind `@`, which a name may not contain.
 - **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
