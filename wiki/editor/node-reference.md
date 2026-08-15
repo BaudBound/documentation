@@ -14,7 +14,7 @@ Each node entry uses the same labels:
 | **Action type** | The internal name stored in the exported package. You normally do not type or change it. |
 | **Configuration** | The settings you enter in the node properties. |
 | **Output** or **Data** | Values that later nodes can read. The exact reference uses the node ID shown in the editor. |
-| **Flow** | The execution connection that runs next, such as `out`, `success`, or `failed`. |
+| **Flow** | The execution connection that runs next. Each node names its own outcomes, such as `out`, `ok`, `not_found`, or `failed`. |
 | **Use** | A common reason to choose the node. |
 | **Runtime** | What happens when the native runner executes the node. |
 | **Simulation** | What the browser editor can test without performing the real native action. |
@@ -29,9 +29,13 @@ Exact package field names are enforced by the linked [node schemas](../package-f
 ## Common node behavior
 
 - Every node may have an optional **Custom name** for editor readability.
-- Triggers begin runs and expose one `out` execution handle.
+- Triggers begin runs and expose one `out` execution handle. File Watch is the exception: it routes through the outcome that names the file event it observed.
 - Ordinary actions continue through `out`.
-- Fallible actions expose `success` and `failed`. The failed route includes `error.message`, `error.code`, `error.type`, `error.retryable`, and `error.details`.
+- Fallible actions expose `failed` plus one or more named outcomes. Many keep a single `success` outcome. The rest name each result they can reach, such as `ok`, `not_found`, or `timed_out`. Each node entry below lists the outcomes that node exposes and what leads to each one.
+- A named outcome other than `failed` reports a normal result, not an error. The action completed, wrote its usual runtime data, and set no `error` value. A file that does not exist, an HTTP `404`, and a process that exited non-zero are all normal results, so handle them from their own outcome rather than from `failed`.
+- `failed` means the action could not be carried out. The failed route includes `error.message`, `error.code`, `error.type`, `error.retryable`, and `error.details`.
+- The canvas draws a readable form of the outcome name, so `client_error` appears as `Client Error`. Two are shortened further: `connection_closed` appears as `Closed` and `device_unavailable` as `Unavailable`. Exported packages and this page use the outcome name.
+- Leaving an outcome unconnected is allowed. The branch ends there and the run continues with any other branch still pending.
 - Runtime output references use the real node ID, for example `{{n-example.status_code}}`.
 - When one output connects to multiple destinations, the numbered connections execute sequentially in their explicit execution order. Canvas position does not select that order.
 - Simulation descriptions are controlled tests. Native runner paths, permissions, devices, processes, and desktop state still require target-machine testing.
@@ -86,7 +90,8 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 
 - **Action type:** `trigger.file_watch`. Capability `trigger.file_watch`. Permission `file.watch.limited` for a bounded relative path or `file.watch.any` for an unbounded path. Medium or Dangerous risk.
 - **Configuration:** variable-aware **Path**. Optional **Include subdirectories** for directory targets. Trigger fields can use only values available before a run begins, such as defaults and Script Settings.
-- **Outputs:** `path` and normalized `event` (`created`, `modified`, `deleted`, or `renamed`).
+- **Outputs:** `path`, `watched_path` for the configured file or directory, and normalized `event` (`created`, `modified`, `deleted`, or `renamed`).
+- **Flow:** this trigger has no `out` handle. It starts the run from the outcome matching the normalized event, so `created`, `modified`, `deleted`, and `renamed` each begin their own branch. Leave an outcome unconnected to ignore that event. An event the runner cannot normalize to one of the four stops the run with an error rather than choosing a branch.
 - **Use:** react to one file or a directory tree.
 - **Runtime:** target must exist and be accessible when listener registration starts. Absolute, parent-traversing, sensitive, or runtime-selected paths require `file.watch.any`. OS save behavior may emit multiple events.
 - **Simulation:** supplied path/event become outputs. No filesystem watcher is opened.
@@ -152,7 +157,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 
 - **Action type:** `control.if`. Capability `runtime.if`. Low risk.
 - **Configuration:** one or more condition rows with a value, operator, optional inversion, and AND/OR combinator. Most comparisons show one target. **Is between** shows an inclusive start value and end value.
-- **Flow:** named `true` and `false` outputs.
+- **Flow:** `true` runs when the combined condition result is true and `false` runs when it is false. Exactly one branch runs. There is no `failed` outcome; a condition that cannot be evaluated stops the run with an error.
 - **Text operators:** equality, ordering, contains, prefix, suffix, regular expression, and case insensitive equality or contains checks.
 - **Number range:** **Is between** passes when Value is equal to the start value, equal to the end value, or anywhere between them. The start must be less than or equal to the end.
 - **Collection operators:** **has key** checks an object key. **contains item** checks a list item.
@@ -168,11 +173,11 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `control.color_match`. It uses capability `runtime.color_match`, has low risk, and does not request a permission.
 - **Configuration:** variable-aware **Actual color** and **Expected color**, **Comparison mode**, and a variable-aware **Tolerance** from `0` through `100` percent. A resolved `color` Script Setting updates the color swatch beside its field.
 - **Accepted colors:** canonical hex such as `#2F80ED`, RGB text such as `rgb(47, 128, 237)`, or a typed RGB object with exactly `r`, `g`, and `b` integer channels from `0` through `255`.
-- **Flow:** `match` runs when the measured difference is less than or equal to the tolerance. `no match` runs for any valid pair outside the tolerance. Exactly one branch runs.
+- **Flow:** `match` runs when the measured difference is less than or equal to the tolerance. `no_match` runs for any valid pair outside the tolerance. Exactly one branch runs. There is no `failed` outcome.
 - **Per channel mode:** compares the largest red, green, or blue channel difference against the percentage tolerance. This is useful when no individual channel may drift too far.
 - **Total RGB distance mode:** compares the normalized three-dimensional distance between the colors. This allows channel differences to contribute to one overall similarity value.
 - **Outputs:** `matches`, `difference_percent`, `red_difference`, `green_difference`, and `blue_difference` remain available to later nodes through the Color Match node ID.
-- **Validation:** `0` percent requires exact equality. `100` percent accepts every pair of valid RGB colors. Invalid or dynamically resolved malformed colors stop the node with an execution error instead of following `no match`.
+- **Validation:** `0` percent requires exact equality. `100` percent accepts every pair of valid RGB colors. Invalid or dynamically resolved malformed colors stop the node with an execution error instead of following `no_match`.
 - **Get Pixel Color example:** set **Actual color** to `{{n-pixel.rgb}}`, set **Expected color** to `#2F80ED`, choose a comparison mode, and enter the acceptable tolerance. The RGB object is passed directly without converting it to text.
 - **Other examples:** compare two literals such as `#101820` and `rgb(16, 24, 32)`, or compare RGB object variables from any source. Color Match is available on every target runtime because it only compares data and does not read the screen.
 
@@ -181,7 +186,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `control.switch`. Capability `runtime.switch`. Low risk.
 - **Configuration:** variable-aware **Value** and ordered case rows with stable IDs, labels, and expected values.
 - **Validation:** every case needs a unique non-empty name and value. Duplicate names, duplicate values, malformed rows, and a missing Value block verification.
-- **Flow:** one named output per case and an always available `default` output.
+- **Flow:** one outcome per case and an always available `default` outcome. A case outcome is labeled with the case name and keeps a stable internal ID, so renaming a case keeps its existing connection. The default outcome has the ID `default` and is drawn as `Default`.
 - **Runtime:** the first equal case wins. When no case matches, the runner follows `default`. Numeric variables and calculated results match equivalent numeric literals even when their displayed formatting differs. Two text values still require exactly the same text.
 - **Example:** route `{{event_type}}` to `created`, `updated`, or default.
 
@@ -190,6 +195,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `control.repeat`. Capability `runtime.repeat`. Low risk.
 - **Configuration:** a variable-aware whole-number **Repeat count** from `1` through `18446744073709551615`.
 - **Flow:** `repeat` executes the body once for every iteration. `done` continues after every iteration finishes or after Break Loop ends the Repeat early.
+- **Data:** `{{node-id.index}}` holds the zero-based index of the active pass and `{{node-id.count}}` holds the configured number of passes. Replace `node-id` with the ID shown in the node's Runtime Data section.
 - **Graph rule:** let the body end naturally. Do not connect the body back to Repeat because the runner starts each new iteration automatically.
 - **Simulation:** repeats the body with the same count and flow behavior used by the runner.
 
@@ -217,6 +223,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `control.while`. Capability `runtime.while`. Low risk.
 - **Configuration:** the same condition rows and inversion behavior as If/Else.
 - **Flow:** `loop` executes while conditions pass. `done` follows the first false result.
+- **Data:** `{{node-id.index}}` holds the zero-based index of the active pass. Replace `node-id` with the ID shown in the node's Runtime Data section.
 - **Graph rule:** no explicit edge returns to While.
 - **Safety:** ensure body state can make the condition false. Runtime limits and cancellation remain important.
 
@@ -225,7 +232,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `control.for_each`. Capability `runtime.for_each`. Low risk.
 - **Configuration:** variable-aware **Items** resolving to a list.
 - **Flow:** `loop` runs once per item. `done` follows completion.
-- **Data:** `{{node-id.item}}` holds the current item and `{{node-id.index}}` holds its zero-based index. Replace `node-id` with the ID shown in the node's Runtime Data section.
+- **Data:** `{{node-id.item}}` holds the current item and `{{node-id.index}}` holds its zero-based index. `{{node-id.count}}` holds the total number of items, and the booleans `{{node-id.is_first}}` and `{{node-id.is_last}}` mark the first and last item. Replace `node-id` with the ID shown in the node's Runtime Data section.
 - **Failure:** non-list input fails control-flow validation/execution.
 - **Example:** for a node with ID `n-example`, read the active item with `{{n-example.item}}` and its position with `{{n-example.index}}`.
 
@@ -234,10 +241,11 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 ### Variable Operation
 
 - **Action type:** `runtime.set_variable`. Capabilities `runtime.variables` and, for stored scopes, `runtime.persistent_storage`. Fallible.
-- **Configuration:** operation `set`, `increment`, `toggle_boolean`, `append_list`, `remove_list_items`, `set_object_field`, `remove_object_field`, `merge_object`, `clear`, or `delete`. Name. Scope `runtime`, `persistent`, or `global`. Set also declares a value type, and Set list declares one item type. Other operations use operation-specific values, removal modes, and field paths. Object field writes declare the field value type.
-- **Clear and Delete:** require a variable name and scope. Neither requires a variable type or value. Clear derives the empty value from the existing variable and fails if it does not exist.
-- **List operations:** Append infers the item type and rejects an item that differs from existing entries. Remove matching list items compares the resolved value and type exactly.
-- **Access:** runtime scope requires `variable.local.set` at Low risk, persistent requires `variable.persistent.set` at Medium risk, and global requires `variable.global.set` at High risk.
+- **Configuration:** operation `set`, `increment`, `toggle_boolean`, `append_list`, `remove_list_items`, `set_object_field`, `remove_object_field`, `merge_object`, `clear`, or `reset`. Name, chosen from the variables the manifest declares. Operations use operation-specific values, removal modes, and field paths. Object field writes declare the field value type.
+- **Scope and type:** neither is on the node. It names a declared variable and the declaration settles both, so a package whose node disagreed with its manifest is no longer expressible. A write to a name the manifest does not declare is refused when the package is loaded.
+- **Clear and Reset:** take a variable name and nothing else. Clear writes the empty value for the declared type; a hotkey has none, so Clear is refused for one and is not offered in the editor. Reset writes the value the declaration gives the variable.
+- **List operations:** Append uses the declared item type and rejects an item that differs from it. Remove matching list items compares the resolved value and type exactly.
+- **Access:** derived from the declared scope — `variable.local.set` at Low risk for `runtime`, `variable.persistent.set` at Medium for `persistent`, `variable.global.set` at High for `global`.
 - **Data:** writes `{{name}}` and refreshes `$length`, `$count`, `$type`, and `$is_empty`.
 - **Validation:** names use letters `A-Z` or `a-z`, numbers `0-9`, hyphens, or underscores. No prefix is reserved: every built-in lives behind `@`, which a name may not contain.
 - **Failure:** invalid values, mixed list item types, incompatible existing values, invalid object paths, and storage write errors continue through `failed` with structured error details. A failed operation does not modify the variable. Removing a field that is already missing succeeds without changing the object.
@@ -321,7 +329,8 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.message_box`. Capability `action.message_box`. Permission `messageBox.show`. Medium risk. Windows Desktop and Linux Desktop. Fallible.
 - **Configuration:** variable-aware title and message, type Info/Warning/Error, window size, buttons OK, OK/Cancel, Cancel/Confirm, Yes/No, or Yes/No/Cancel, and an optional positive timeout from greater than `0` through `86400` seconds.
 - **Runtime:** opens a BaudBound desktop dialog while the main runner window stays responsive. Dialog requests are queued first-in, first-out, with one active request at a time. When Dialog Console mode is enabled, the active request is rendered in the persistent console instead of a transient window.
-- **Output:** `button` is `ok`, `cancel`, `confirm`, `yes`, `no`, or `timeout`. Non-timeout values exactly match a button from the configured set. Closing OK behaves as OK. Closing a set that contains Cancel behaves as Cancel. A Yes/No dialog must be answered explicitly and cannot be closed into an ambiguous result. A configured timeout is displayed as a countdown and returns `timeout` when it expires.
+- **Flow:** the dialog result selects the outcome, and the node shows only the outcomes its configuration can reach. The configured button set decides which of `ok`, `cancel`, `confirm`, `yes`, and `no` appear: OK shows `ok`; OK/Cancel shows `ok` and `cancel`; Cancel/Confirm shows `cancel` and `confirm`; Yes/No shows `yes` and `no`; Yes/No/Cancel shows `yes`, `no`, and `cancel`. Changing the button set changes which outcomes exist. `timed_out` appears only when a timeout is configured, and runs when the countdown expires. `failed` is always present and runs when the dialog could not be shown, such as a title or message that does not resolve to non-empty text, or a timeout that does not resolve to a supported number.
+- **Output:** `button` is `ok`, `cancel`, `confirm`, `yes`, `no`, or `timeout`. Non-timeout values exactly match a button from the configured set. Closing OK behaves as OK. Closing a set that contains Cancel behaves as Cancel. A Yes/No dialog must be answered explicitly and cannot be closed into an ambiguous result. A configured timeout is displayed as a countdown and returns `timeout` when it expires. That expiry is the one case where the two names differ: `button` reads `timeout` while the outcome is named `timed_out`.
 - **Cancellation:** stopping the run, restarting the runner, or closing the runner cancels the waiting action. These are runtime cancellations, not button results.
 - **Simulation:** uses a blocking editor modal and returns the selected button. Stopping simulation aborts the wait.
 
@@ -339,6 +348,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Required values:** required text must not be empty, required numbers must be present and finite, required checkboxes must be checked, and required choice components need a selection. An optional blank number is omitted from `values`.
 - **Buttons and outputs:** every Form Dialog displays Cancel and Submit. `values` is an object whose typed fields are derived from component keys, `submitted` is true only after Submit, and `button` is `ok`, `cancel`, or `timeout`.
 - **Cancel and timeout:** Cancel, Escape, or window close returns `submitted=false`, `button="cancel"`, and an empty `values` object. Timeout returns the same empty values with `button="timeout"`. Stopping the runtime is a cancellation and produces no normal outputs.
+- **Flow:** `submitted` runs after Submit, `cancelled` runs after Cancel, Escape, or window close, and `timed_out` runs when the configured timeout expires. Those three correspond to the `button` values `ok`, `cancel`, and `timeout`. `failed` runs when the dialog could not be shown, such as a title that does not resolve to non-empty text, a timeout that does not resolve to a supported number, or a component whose configuration the renderer rejects. Stopping the run is a cancellation and follows no outcome at all.
 - **Password handling:** each submitted password field is transient sensitive data. It remains usable through its nested reference during the active run, but its value is redacted from logs and cannot be copied into persistent or global variables. The containing `values` output is omitted from retained run variables; non-secret sibling values can still be copied to ordinary downstream variables. This is an application window, not an operating-system secure desktop or credential vault; other software with desktop capture or input-monitoring access may still observe it.
 - **Validation boundary:** the editor, simulator, package schema, desktop renderer, and runner independently reject malformed components, duplicate keys, wrong variable and response types, unknown response fields, and values outside configured choices. Editor suggestions expose only compatible variable types, and whole-script verification blocks known type mismatches or typed references whose type cannot be established.
 - **Runtime and simulation:** dialog requests are queued first-in, first-out, with one active request at a time. Dialog Console mode uses its persistent window. Simulation uses a blocking editor form with the same component behavior, typed output shape, configured choice ordering, timeout behavior, and password redaction as the runner.
@@ -355,11 +365,13 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 ### HTTP Request
 
 - **Action type:** `action.http`. Capability `action.http`. Permission `http.request`. Medium risk. Fallible.
-- **Configuration:** method, body format, variable-aware URL, headers, body, timeout `1-300` seconds, and user agent.
+- **Configuration:** method, body format, variable-aware URL, headers, body, timeout from greater than `0` through `86400` seconds with a default of `30`, and user agent.
 - **JSON bodies:** JSON mode parses the body before variables are inserted. Put variable references inside JSON string quotes. A reference that fills the complete string keeps its original type. Strings are escaped safely, including quotes, backslashes, carriage returns, and newlines.
 - **Text bodies:** Text mode inserts variables directly and sends the resulting text without JSON processing.
 - **Existing projects:** when body format is not present, the runner treats the body as JSON if its `Content-Type` is `application/json` or an `application/*+json` media type.
 - **Outputs:** status code/text, headers, body, optional parsed `json`, duration, or structured network error.
+- **Flow:** the response status code selects the outcome. `ok` covers `200` through `299`. `client_error` covers `400` through `499`, so a `404` follows `client_error`. `server_error` covers `500` through `599`. `unexpected_status` covers every other status the server returned, which in practice means a `1xx` informational response or a `3xx` redirect that was not followed. There is no expected-status setting to configure; the four bands above are fixed.
+- **Failure:** `failed` runs only when no response arrived, such as a name-resolution, connection, TLS, timeout, blocked-destination, or invalid-request error. Status codes never route through `failed`, so a request that reached the server and returned an error status is still a completed request with a status code, headers, and body available to later nodes.
 - **Runtime:** native HTTP client behavior may differ from browser redirects, CORS, forbidden headers, cookies, and TLS stores.
 - **Private destinations:** the runner blocks loopback, private, link-local, and other non-public addresses by default. The operator must explicitly enable `security.policy.allow_private_http_requests` when an approved workflow needs them.
 - **Simulation:** mock mode is the default and performs no network access or secret interpolation. Live mode requires per-run approval of the literal destination origins, then sends through the bounded Editor service with Runner-equivalent address, redirect, header, timeout, cancellation, and response-size policy.
@@ -377,6 +389,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.websocket.write`. Capability `action.websocket`. Permission `websocket.write`. Medium risk. Fallible.
 - **Configuration:** select the **Connection** from an available WebSocket Trigger and enter a variable-aware **Message**. The editor stores the selected trigger's `connection_id` reference.
 - **Outputs:** send result/byte information or connection error.
+- **Flow:** `sent` runs when the message reached the connection, and reports `connection_id`, `message`, and the UTF-8 `bytes` count. `connection_closed` runs when the WebSocket listener is not available or the connection no longer accepts the message, which is the normal outcome when the client disconnected earlier in the run. `failed` runs when the write could not be attempted at all, such as a connection reference or message that does not resolve. The canvas draws `connection_closed` as `Closed`.
 - **Use:** reply through the connection emitted by the selected WebSocket Trigger for the current run.
 - **Graph rule:** the selected WebSocket Trigger must still exist and must be able to reach the WebSocket Write node through the graph.
 - **Failure:** unknown, stale, or disconnected IDs are rejected.
@@ -386,6 +399,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.serial.write`. Capability `action.serial`. Permission `serial.write`. Medium risk. Fallible.
 - **Configuration:** logical device ID selected from Serial Input triggers, variable-aware data, and line ending none/LF/CRLF.
 - **Output:** write result or structured serial error.
+- **Flow:** `sent` runs when the payload was written, and reports `device_id`, the native `port`, and the `bytes` count including any added line ending. `device_unavailable` runs when the logical device ID has no mapping in the runner configuration, so a script can react to unconfigured hardware without treating it as an error. `failed` runs when the device is mapped but the write itself did not succeed, including an unsupported line ending and a port that cannot be opened or written to. The canvas draws `device_unavailable` as `Unavailable`.
 - **Runner connection:** Serial Write uses the same logical-device connection as Serial Input. It does not open a competing port handle when a reader is active.
 - **Graph rule:** requires a Serial Input trigger using the same logical ID.
 - **Simulation:** reports intended bytes and line ending without opening hardware.
@@ -397,6 +411,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.file.read`. Capability `action.file`. Permission `file.read` for a bounded relative path. Medium risk. Fallible.
 - **Configuration:** variable-aware path. Files are always decoded as UTF-8, so there is no encoding selector.
 - **Outputs:** content, byte count, resolved path, or error.
+- **Flow:** `read` runs when the file was read. `not_found` runs when the path does not exist, and reports the resolved `path` so a script can branch on a missing file without treating it as an error. `failed` runs when the path exists but the content could not be produced, which covers a directory or other non-regular file, a file larger than the runner read limit, content that is not valid UTF-8, and permission or other read errors.
 - **Access:** absolute, sensitive, parent-traversing, or runtime-selected paths require the dangerous `file.read.any` permission instead of `file.read`.
 - **Simulation:** sample output only. Runner account permissions and file existence remain untested.
 
@@ -421,6 +436,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.file.delete`. Capability `action.file`. Permission `file.delete.limited` for a bounded relative path or `file.delete.any` for an unbounded path. High or Dangerous risk. Fallible.
 - **Configuration:** variable-aware path.
 - **Output:** deleted path or error.
+- **Flow:** `deleted` runs when the file was removed. `not_found` runs when the path does not exist, so deleting something that is already gone is a normal outcome rather than a failure. `failed` runs when the path exists but could not be deleted, which covers a directory or other non-regular file and permission or other removal errors.
 - **Warning:** deletion is not a recycle-bin operation. Restrict input and test on disposable data.
 
 ### Copy File
@@ -445,14 +461,16 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.process.run`. Capability `action.process`. Permission `process.run`. Dangerous risk. Fallible.
 - **Configuration:** variable-aware executable, arguments, optional working directory, and optional timeout from `1` to `86400` seconds, default `300`.
 - **Outputs:** process ID, exit code, success flag, captured standard output, captured standard error, or action error.
+- **Flow:** `exited_zero` runs when the process exited with code `0`. `exited_nonzero` runs for every other exit code, so a program that ran correctly and reported a non-zero status is a normal outcome rather than a failure. Both carry the exit code and the captured output. `timed_out` runs when the configured timeout elapses first; the runner then terminates the process and its child group, and no exit code is produced. `failed` runs when the process could not be run or supervised at all, such as an executable that cannot be found or started, or captured output that exceeded the runner limit.
 - **Runtime:** uses native process APIs, not shell parsing. Arguments must match the target executable's contract.
 - **Program lookup:** a name without a path separator is looked up on `PATH`, so `git` works. The working directory is never searched, which stops a file placed there from being run in place of the intended program. To run a program from a specific directory, give a path such as `./tool.exe` or a full path.
 
 ### Process Status
 
 - **Action type:** `action.process.status`. Capability `action.process`. Permission `process.query`. Medium risk. Fallible.
-- **Configuration:** match by process name, executable path, or window title. Variable-aware target.
+- **Configuration:** match by process name, executable path, window title, or PID. Variable-aware target.
 - **Outputs:** running flag, matching process information, or error.
+- **Flow:** `running` runs when a process matched the target and `not_running` runs when none did. Both are normal query results, and `not_running` still reports `running` as false with a `state` of `not_found`. `failed` is reserved for a query that could not be performed, such as a PID target that is not a number or window-title matching outside the desktop runner.
 - **Platform:** window-title mode requires Windows Desktop.
 
 ### Kill Process
@@ -460,6 +478,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.process.kill`. Capability `action.process`. Permission `process.kill`. High risk. Fallible.
 - **Configuration:** match by process name, executable path, window title, or PID. Variable-aware target.
 - **Outputs:** matched/terminated process information or error.
+- **Flow:** `killed` runs when a matching process was found and terminated, and reports its process ID and name. `not_found` runs when no process matched the target, and reports the `target` that was searched for. `failed` runs when a process matched but could not be terminated, such as insufficient rights, and when the query itself could not be performed, such as a PID target that is not a number or window-title matching outside the desktop runner.
 - **Platform:** window-title mode requires Windows Desktop.
 
 ### Open Application
@@ -482,6 +501,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Action type:** `action.window.focus`. Capability `action.window`. Permission `window.focus`. High risk. Windows Desktop only. Fallible.
 - **Configuration:** match by process name, executable path, or window title. Variable-aware target.
 - **Outputs:** focused window/process details or error.
+- **Flow:** `focused` runs when a matching window was brought to the foreground. `not_found` runs when no window matched the target, and reports the `target` that was searched for. `failed` runs when a window matched but the operating system refused the foreground change, and when the action is not available on the current target runtime.
 - **Review:** focus changes can redirect subsequent keyboard or mouse actions.
 
 ### Get Pixel Color
@@ -595,6 +615,7 @@ Held mouse buttons use the same run ownership and automatic cleanup as held keyb
 - **Action type:** `action.shell`. Capability supplied through process execution. Permission `process.shell`. Dangerous. Fallible.
 - **Configuration:** variable-aware command string interpreted by the target shell and optional timeout from `1` to `86400` seconds, default `300`.
 - **Outputs:** exit code, stdout, stderr, or error.
+- **Flow:** the same four outcomes as Run Process. `exited_zero` runs when the shell exited with code `0`, `exited_nonzero` runs for every other exit code, `timed_out` runs when the configured timeout elapses first and the runner terminates the shell and its child group, and `failed` runs when the shell could not be started or supervised at all, or when captured output exceeded the runner limit.
 - **Platform:** syntax is platform-specific even under a Generic target.
 - **Warning:** prefer a native node or Run Process. Shell interpolation can turn data into arbitrary commands and has independent runner policy gates.
 
