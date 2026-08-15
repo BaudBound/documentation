@@ -7,7 +7,7 @@ tags: [runner, installation]
 
 ## Supported systems
 
-BaudBound releases currently target 64-bit Windows and 64-bit x86 Linux. Windows uses an installer. Debian and Ubuntu use a `.deb` package. Fedora uses an `.rpm` package. A portable AppImage is also published for manual use on other compatible Linux systems.
+BaudBound releases currently target 64-bit Windows and Linux. Windows uses an installer and is published for 64-bit x86 only. Linux is published for both 64-bit x86 and 64-bit ARM: Debian and Ubuntu use a `.deb` package, Fedora uses an `.rpm` package, and a portable AppImage is also published for manual use on other compatible Linux systems. Each Linux format is published once per architecture, so pick the file matching your processor as described under [Choose the package for your processor](#choose-the-package-for-your-processor).
 
 Download release files only from the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases). Open the latest published release and choose the file for the operating system. You do not need Rust, Node.js, or the source repository to run a published release.
 
@@ -120,7 +120,7 @@ On Fedora, install `curl` with:
 sudo dnf install curl
 ```
 
-After `curl` starts the installer, the script confirms that the machine uses 64-bit x86 Linux and reads the distribution information from `/etc/os-release`. Debian and Ubuntu receive the `.deb` package through APT. Fedora receives the `.rpm` package through DNF.
+After `curl` starts the installer, the script confirms that the machine uses 64-bit x86 or 64-bit ARM Linux and reads the distribution information from `/etc/os-release`. Debian and Ubuntu receive the `.deb` package through APT. Fedora receives the `.rpm` package through DNF. The architecture is detected for you, so the automatic installer needs no choice between the `amd64` and `arm64` files.
 
 The script checks every command it needs before downloading BaudBound. If a command is missing, the script stops and names it. It also stops without downloading anything when the distribution or architecture is unsupported.
 
@@ -156,9 +156,26 @@ The installer provides the desktop application. It does not guarantee that `baud
 
 Use the native package for Debian, Ubuntu, or Fedora. It installs the desktop launcher and the `baudbound` command through the operating system package manager.
 
+##### Choose the package for your processor
+
+BaudBound publishes each Linux package for 64-bit x86 and for 64-bit ARM. Debian and RPM spell those architectures differently, so the name to look for depends on both your processor and your distribution.
+
+```bash
+uname -m
+```
+
+| `uname -m` reports | Debian and Ubuntu file | Fedora file |
+| --- | --- | --- |
+| `x86_64` | ends in `_amd64.deb` | ends in `.x86_64.rpm` |
+| `aarch64` | ends in `_arm64.deb` | ends in `.aarch64.rpm` |
+
+Anything else, including 32-bit ARM reported as `armv7l`, has no BaudBound package.
+
+Installing a package built for another architecture fails. APT reports that the package has a different architecture, and DNF reports that the package is not compatible. Neither leaves a partial installation behind, so download the matching file and install again.
+
 ##### Debian and Ubuntu package
 
-1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the file ending in `_amd64.deb`.
+1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the `.deb` file for your architecture from the table above.
 2. Open a terminal and move to the directory containing the download:
 
 ```bash
@@ -168,20 +185,20 @@ cd "$HOME/Downloads"
 3. Confirm that the directory contains only the BaudBound package you intend to install:
 
 ```bash
-ls -1 Baudbound_*_amd64.deb
+ls -1 Baudbound_*.deb
 ```
 
 4. Ask APT to verify dependencies and install the local package:
 
 ```bash
-sudo apt install ./Baudbound_*_amd64.deb
+sudo apt install ./Baudbound_*.deb
 ```
 
 APT installs a newer package over an older BaudBound version. You do not need to remove the old version first.
 
 ##### Fedora package
 
-1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the file ending in `.x86_64.rpm`.
+1. Open the [latest BaudBound GitHub Release](https://github.com/BaudBound/baudbound/releases/latest) and download the `.rpm` file for your architecture from the table above.
 2. Open a terminal and move to the directory containing the download:
 
 ```bash
@@ -191,13 +208,13 @@ cd "$HOME/Downloads"
 3. Confirm that the directory contains only the BaudBound package you intend to install:
 
 ```bash
-ls -1 Baudbound-*.x86_64.rpm
+ls -1 Baudbound-*.rpm
 ```
 
 4. Ask DNF to verify dependencies and install the local package:
 
 ```bash
-sudo dnf install ./Baudbound-*.x86_64.rpm
+sudo dnf install ./Baudbound-*.rpm
 ```
 
 DNF installs a newer package over an older BaudBound version. You do not need to remove the old version first.
@@ -214,7 +231,7 @@ The steps below install BaudBound only for your user account. They do not instal
 
 ##### Install the AppImage
 
-1. Download the `.AppImage` from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases).
+1. Download the `.AppImage` for your processor from the latest published release on the [BaudBound GitHub Releases page](https://github.com/BaudBound/baudbound/releases). Run `uname -m` and take the file whose name contains `amd64` when it reports `x86_64`, or `aarch64` when it reports `aarch64`.
 
 2. Open a terminal. Move into the Downloads directory because this is where most browsers save the file:
 
