@@ -365,7 +365,7 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 ### HTTP Request
 
 - **Action type:** `action.http`. Capability `action.http`. Permission `http.request`. Medium risk. Fallible.
-- **Configuration:** method, body format, variable-aware URL, headers, body, timeout `1-300` seconds, and user agent.
+- **Configuration:** method, body format, variable-aware URL, headers, body, timeout from greater than `0` through `86400` seconds with a default of `30`, and user agent.
 - **JSON bodies:** JSON mode parses the body before variables are inserted. Put variable references inside JSON string quotes. A reference that fills the complete string keeps its original type. Strings are escaped safely, including quotes, backslashes, carriage returns, and newlines.
 - **Text bodies:** Text mode inserts variables directly and sends the resulting text without JSON processing.
 - **Existing projects:** when body format is not present, the runner treats the body as JSON if its `Content-Type` is `application/json` or an `application/*+json` media type.
