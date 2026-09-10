@@ -43,7 +43,7 @@ Node IDs are stable within the project and appear in output references, edges, l
 
 Drag from an output handle to a compatible input handle. The edge follows the project-wide style selected in the canvas toolbar.
 
-Ordinary nodes use an `out` execution output. Fallible actions expose **success** and **failed** outputs. The failed branch provides structured `error` data. Control nodes expose named branches such as **true**, **false**, **repeat**, **loop**, **done**, switch cases, or a default route.
+Ordinary nodes use an `out` execution output. Fallible actions expose **success** and **failed** outputs. The failed branch provides structured `error` data. Control nodes expose named branches such as **true**, **false**, **repeat**, **loop**, **done**, switch cases, a default route, or the named inputs and outputs of a Router.
 
 Triggers have no execution input because they begin runs. A workflow can contain multiple trigger types, but only one Manual trigger is allowed.
 
