@@ -190,6 +190,16 @@ A stopped or skipped activation produces no run, so nothing appears in run histo
 - **Runtime:** the first equal case wins. When no case matches, the runner follows `default`. Numeric variables and calculated results match equivalent numeric literals even when their displayed formatting differs. Two text values still require exactly the same text.
 - **Example:** route `{{event_type}}` to `created`, `updated`, or default.
 
+### Router
+
+- **Action type:** `control.router`. Capability `runtime.router`. Low risk.
+- **Configuration:** named **Inputs**, named **Outputs**, and ordered internal **Routes** from an input to one or more outputs. Add, rename, reorder, and remove ports in the properties panel. Select an input, then click outputs to toggle routes. Each route row shows its execution number and has move up, move down, and remove controls.
+- **Ports:** every input and output keeps a stable internal ID. Renaming a port only changes its label, so existing connections survive. Removing a port removes its routes and any canvas connection that used it. External handles are `in-{id}` and `out-{id}`.
+- **Validation:** at least one input and one output. Every input needs at least one route, every output needs at least one incoming route, routes cannot repeat the same input and output pair, and route order per input must be unique and consecutive from `0`. Verification blocks export until the configuration is valid.
+- **Flow:** the run enters through one input handle. The runner follows only that input's routes, in their configured order, and finishes each routed branch before starting the next. An output with no connection ends that branch without an error.
+- **Canvas:** the node stays compact and shows `N in - M out - K routes` under the action type. Routes are configured in the properties panel, not on the canvas.
+- **Examples:** three inputs and one output merge separate triggers into one path. One input and three outputs fan a single event out in a fixed order.
+
 ### Repeat
 
 - **Action type:** `control.repeat`. Capability `runtime.repeat`. Low risk.
